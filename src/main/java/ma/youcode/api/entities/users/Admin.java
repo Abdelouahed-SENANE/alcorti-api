@@ -7,17 +7,13 @@ import jakarta.persistence.Table;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-@Builder
+@SuperBuilder(toBuilder = true)
 @Entity
 @Getter
 @Setter
-@RequiredArgsConstructor
 @DiscriminatorValue("ROLE_ADMIN")
 @Table(name = "ADMINS")
 @AllArgsConstructor
-@NoArgsConstructor
 public class Admin extends User {
-    public Admin(User user) {
-        super(user); // Call the User constructor that takes a User object
-    }
+
 }

@@ -1,22 +1,24 @@
-package ma.youcode.api.entities.users;
+package ma.youcode.api.services.implementations;
 
+import ma.youcode.api.entities.users.User;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 
 
 public class UserDetailsImpl extends User implements UserDetails {
 
-
-    UserDetailsImpl(User user) {
+    UserDetailsImpl(final User user) {
         super(user);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        GrantedAuthority authority = new SimpleGrantedAuthority(getRole().name());
+        return Collections.singletonList(authority);
     }
 
     @Override

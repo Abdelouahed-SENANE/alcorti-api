@@ -6,19 +6,14 @@ import jakarta.persistence.Table;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-@Builder
+@SuperBuilder(toBuilder = true)
 @Entity
 @Getter
 @Setter
-@RequiredArgsConstructor
 @DiscriminatorValue("ROLE_DRIVER")
 @Table(name = "DRIVERS")
 @AllArgsConstructor
-@NoArgsConstructor
 public class Driver extends User {
-    public Driver(User user) {
-        super(user); // Call the User constructor that takes a User object
-    }
 
 
 }

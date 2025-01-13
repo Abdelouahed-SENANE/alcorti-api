@@ -17,8 +17,9 @@ import java.util.UUID;
 @Table(name = "USERS")
 @DiscriminatorColumn(name = "ROLE")
 @AllArgsConstructor
-@RequiredArgsConstructor
+@NoArgsConstructor
 @Setter
+@Getter
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class User extends BaseEntity<UUID> {
 
@@ -56,44 +57,4 @@ public abstract class User extends BaseEntity<UUID> {
         this.role = user.getRole();
     }
 
-    public String getCin() {
-        return cin;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public RoleName getRole() {
-        return role;
-    }
-
-    public LocalDateTime getLoggedAt() {
-        return loggedAt;
-    }
-
-    public Boolean getIsEmailVerified() {
-        return isEmailVerified;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    @Override
-    public UUID getId() {
-        return super.getId();
-    }
 }
