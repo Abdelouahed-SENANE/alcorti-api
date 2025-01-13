@@ -1,0 +1,45 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: ${APP_NAME}
+    version: ${APP_VERSION}
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: false
+        jdbc:
+          batch_size: 50
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+
+server:
+  port: 8000
+
