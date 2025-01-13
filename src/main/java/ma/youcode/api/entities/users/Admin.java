@@ -4,19 +4,20 @@ package ma.youcode.api.entities.users;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-@SuperBuilder(toBuilder = true)
+@Builder
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@RequiredArgsConstructor
 @DiscriminatorValue("ROLE_ADMIN")
-@Table(name = "admins")
+@Table(name = "ADMINS")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Admin extends User {
+    public Admin(User user) {
+        super(user); // Call the User constructor that takes a User object
+    }
 }

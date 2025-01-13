@@ -3,19 +3,20 @@ package ma.youcode.api.entities.users;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
+import lombok.*;
 
-@SuperBuilder(toBuilder = true)
+
+@Builder
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @DiscriminatorValue("ROLE_COSTUMER")
 @Entity
-@Table(name = "costumers")
+@Table(name = "COSTUMERS")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Costumer extends User{
+    public Costumer(User user) {
+        super(user); // Call the User constructor that takes a User object
+    }
+
 }
