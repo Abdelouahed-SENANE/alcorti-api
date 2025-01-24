@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import ma.youcode.api.constants.RoleName;
+import org.springframework.data.domain.Auditable;
 import org.starter.utilities.entities.BaseEntity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 

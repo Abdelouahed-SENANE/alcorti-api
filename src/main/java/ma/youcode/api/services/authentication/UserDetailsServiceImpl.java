@@ -1,6 +1,5 @@
-package ma.youcode.api.services.implementations;
+package ma.youcode.api.services.authentication;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import ma.youcode.api.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;

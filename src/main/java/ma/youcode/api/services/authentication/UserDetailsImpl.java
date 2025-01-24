@@ -1,4 +1,4 @@
-package ma.youcode.api.services.implementations;
+package ma.youcode.api.services.authentication;
 
 import ma.youcode.api.entities.users.User;
 import org.springframework.security.core.GrantedAuthority;
