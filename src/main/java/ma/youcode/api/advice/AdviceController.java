@@ -5,4 +5,5 @@ import org.starter.utilities.exceptions.AbstractGlobalExceptionHandler;
 
 @RestControllerAdvice
 public class AdviceController extends AbstractGlobalExceptionHandler {
+
 }

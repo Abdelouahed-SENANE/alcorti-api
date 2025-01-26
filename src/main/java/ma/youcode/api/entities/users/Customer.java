@@ -1,5 +1,6 @@
 package ma.youcode.api.entities.users;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -12,9 +13,12 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @DiscriminatorValue("ROLE_COSTUMER")
 @Entity
-@Table(name = "COSTUMERS")
+@Table(name = "CUSTOMERS")
 @AllArgsConstructor
-public class Costumer extends User{
+@NoArgsConstructor
+public class Customer extends User{
 
+    @Column(name = "phone_number")
+    private String phoneNumber;
 
 }

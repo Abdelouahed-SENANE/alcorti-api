@@ -17,46 +17,47 @@ import java.util.UUID;
 @SuperBuilder(toBuilder = true)
 @Entity
 @Table(name = "USERS")
-@DiscriminatorColumn(name = "ROLE")
+@DiscriminatorColumn(name = "role_name")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class User extends BaseEntity<UUID> {
+public class User extends BaseEntity<UUID> {
 
-    @Column(name = "CIN", unique = true)
+    @Column(name = "cin", unique = true)
     private String cin;
-    @Column(name = "FIRST_NAME")
+    @Column(name = "first_name")
     private String firstName;
-    @Column(name = "LAST_NAME")
+    @Column(name = "last_name")
     private String lastName;
-    @Column(name = "EMAIL", unique = true)
+    @Column(name = "email", unique = true)
     private String email;
-    @Column(name = "PASSWORD")
+    @Column(name = "password")
     private String password;
-    @Column(name = "IS_ACTIVE" , nullable = false)
+    @Column(name = "picture")
+    private String picture;
+    @Column(name = "is_active" , nullable = false)
     private Boolean isActive;
-    @Column(name = "IS_EMAIL_VERIFIED" , nullable = false)
+    @Column(name = "is_email_verified" , nullable = false)
     private Boolean isEmailVerified;
-    @Column(name = "LOGGED_AT")
+    @Column(name = "logged_at")
     private LocalDateTime loggedAt;
     @Enumerated(EnumType.STRING)
-    @Column(name = "ROLE_NAME" , insertable = false , updatable = false)
+    @Column(name = "role_name" , insertable = false , updatable = false)
     private RoleName role;
 
 
-    public User(User user) {
-        super.setId(user.getId());
-        this.cin = user.getCin();
-        this.firstName = user.getFirstName();
-        this.lastName = user.getLastName();
-        this.email = user.getEmail();
-        this.password = user.getPassword();
-        this.isActive = user.getIsActive();
-        this.isEmailVerified = user.getIsEmailVerified();
-        this.loggedAt = user.getLoggedAt();
-        this.role = user.getRole();
-    }
+//    public User(User user) {
+//        super.setId(user.getId());
+//        this.firstName = user.getFirstName();
+//        this.lastName = user.getLastName();
+//        this.email = user.getEmail();
+//        this.password = user.getPassword();
+//        this.isActive = user.getIsActive();
+//        this.isEmailVerified = user.getIsEmailVerified();
+//        this.loggedAt = user.getLoggedAt();
+//        this.role = user.getRole();
+//    }
 
 }
