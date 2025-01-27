@@ -3,11 +3,9 @@ package ma.youcode.api.entities.users;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import ma.youcode.api.constants.RoleName;
-import org.springframework.data.domain.Auditable;
+import ma.youcode.api.constants.RoleType;
 import org.starter.utilities.entities.BaseEntity;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -37,27 +35,16 @@ public class User extends BaseEntity<UUID> {
     private String password;
     @Column(name = "picture")
     private String picture;
-    @Column(name = "is_active" , nullable = false)
-    private Boolean isActive;
+    @Column(name = "is_enabled" , nullable = false)
+    private Boolean isEnabled;
     @Column(name = "is_email_verified" , nullable = false)
     private Boolean isEmailVerified;
     @Column(name = "logged_at")
     private LocalDateTime loggedAt;
     @Enumerated(EnumType.STRING)
     @Column(name = "role_name" , insertable = false , updatable = false)
-    private RoleName role;
+    private RoleType role;
 
 
-//    public User(User user) {
-//        super.setId(user.getId());
-//        this.firstName = user.getFirstName();
-//        this.lastName = user.getLastName();
-//        this.email = user.getEmail();
-//        this.password = user.getPassword();
-//        this.isActive = user.getIsActive();
-//        this.isEmailVerified = user.getIsEmailVerified();
-//        this.loggedAt = user.getLoggedAt();
-//        this.role = user.getRole();
-//    }
 
 }

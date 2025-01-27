@@ -1,36 +1,41 @@
 package ma.youcode.api.dtos.requests;
 
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import ma.youcode.api.constants.UserType;
+import jakarta.validation.constraints.Size;
+import lombok.Builder;
+import ma.youcode.api.annotations.validation.FileGuard;
 import ma.youcode.api.entities.users.User;
 import ma.youcode.api.utilities.shared.Coordinates;
+import org.springframework.web.multipart.MultipartFile;
 import org.starter.utilities.annotations.validation.Unique;
-import org.starter.utilities.annotations.validation.ValidEnum;
 import org.starter.utilities.markers.validation.OnCreate;
+import org.starter.utilities.markers.validation.OnUpdate;
 
+@Builder
 public record UserRequestDTO
         (
                 @NotBlank(groups = OnCreate.class)
-                @Unique(groups = OnCreate.class , entity = User.class , field = "cin" , message = "Cin already exists.")
+                @Unique(groups = OnCreate.class, entity = User.class, field = "cin", message = "CIN already exists.")
+                @Pattern(regexp = "^[A-Z]{1,2}\\d{4,10}$", message = "CIN must be 1-2 letters followed by 6-10 digits.")
                 String cin,
                 @NotBlank(groups = OnCreate.class)
                 String firstName,
                 @NotBlank(groups = OnCreate.class)
                 String lastName,
                 @NotBlank(groups = OnCreate.class)
-                @Unique(groups = OnCreate.class , entity = User.class , field = "email" , message = "Email already exists.")
+                @Unique(groups = OnCreate.class, entity = User.class, field = "email", message = "Email already exists.")
+                @Email(groups = OnCreate.class, message = "Invalid email format.")
                 String email,
                 @NotBlank(groups = OnCreate.class)
-//                @Min(value = 8 , message = "Password must be at least 8 characters long" , groups = OnCreate.class)
+                @Size(min = 8, message = "Password must be at least 8 characters long", groups = OnCreate.class)
                 String password,
-                @NotBlank(groups = OnCreate.class)
-                String picture,
+                @FileGuard(groups = {OnUpdate.class}, maxSize = 2)
+                MultipartFile picture,
                 Coordinates coordinates,
                 @NotBlank(groups = OnCreate.class)
-                @Pattern(regexp = "^\\+212 \\d{9}$", message = "Invalid phone number format")
+                @Pattern(regexp = "^(?:\\+?212\\s?|\\(?0\\)?)(\\d{9})$", message = "Invalid phone number format")
                 String phoneNumber
         ) {
 }

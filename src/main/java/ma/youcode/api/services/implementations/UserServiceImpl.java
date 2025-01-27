@@ -4,14 +4,14 @@ import lombok.RequiredArgsConstructor;
 import ma.youcode.api.constants.UserType;
 import ma.youcode.api.dtos.requests.UserRequestDTO;
 import ma.youcode.api.dtos.responses.UserResponseDTO;
-import ma.youcode.api.entities.users.Admin;
-import ma.youcode.api.entities.users.Customer;
-import ma.youcode.api.entities.users.Driver;
 import ma.youcode.api.entities.users.User;
 import ma.youcode.api.repositories.UserRepository;
+import ma.youcode.api.services.FileStorageService;
 import ma.youcode.api.services.UserService;
 import ma.youcode.api.utilities.factories.UserFactory;
 import ma.youcode.api.utilities.mappers.UserMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.starter.utilities.mappers.GenericMapper;
@@ -24,9 +24,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private static final Logger log = LogManager.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final UserFactory userFactory;
+    private final FileStorageService fileStorageService;
 
 
     @Override
@@ -40,12 +41,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO create(UserRequestDTO requestDTO , UserType userType) {
-        User user = userFactory.build(requestDTO , userType);
-        user.setIsActive(false);
+    public UserResponseDTO create(UserRequestDTO dto , UserType userType) {
+        User user = UserFactory.build(dto , userType);
+        user.setIsEnabled(false);
         user.setIsEmailVerified(false);
         return userMapper.toResponseDTO(userRepository.save(user));
     }
 
+    @Override
+    public UserResponseDTO update(UUID uuid, UserRequestDTO dto) {
 
+        return findAndExecute(uuid , user -> {
+            userMapper.updateEntity(dto , user);
+            if (dto.picture() != null){
+                user.setPicture(fileStorageService.store(dto.picture()));
+            }
+            return userMapper.toResponseDTO(user);
+        });
+
+    }
 }

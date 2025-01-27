@@ -1,13 +1,14 @@
 package ma.youcode.api.dtos.responses;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import ma.youcode.api.constants.RoleName;
+import lombok.Builder;
+import ma.youcode.api.constants.RoleType;
 import ma.youcode.api.utilities.shared.Coordinates;
-
 
 import java.util.UUID;
 
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
+@Builder
 public record UserResponseDTO(
         UUID id,
         String cin,
@@ -18,9 +19,8 @@ public record UserResponseDTO(
         String picture,
         Coordinates coordinates,
         String phoneNumber,
-        Boolean isActive,
+        Boolean isEnabled,
         Boolean isEmailVerified,
-        RoleName role
-
+        RoleType role
 ) {
 }

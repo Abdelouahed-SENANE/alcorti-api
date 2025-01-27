@@ -1,7 +1,10 @@
 package ma.youcode.api.entities.users;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import ma.youcode.api.utilities.shared.Coordinates;
 
