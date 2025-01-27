@@ -9,5 +9,5 @@ import org.starter.utilities.services.CrudService;
 import java.util.UUID;
 
 public interface UserService extends CrudService<UserResponseDTO , UserRequestDTO,User , UUID> {
-    public UserResponseDTO create(UserRequestDTO requestDTO , UserType userType);
+    UserResponseDTO create(UserRequestDTO requestDTO , UserType userType);
 }
