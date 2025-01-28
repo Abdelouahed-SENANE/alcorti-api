@@ -16,11 +16,11 @@ import java.util.UUID;
 @Entity
 @Table(name = "USERS")
 @DiscriminatorColumn(name = "role_name")
-@AllArgsConstructor
-@NoArgsConstructor
 @Setter
 @Getter
 @Inheritance(strategy = InheritanceType.JOINED)
+@NoArgsConstructor
+@AllArgsConstructor
 public class User extends BaseEntity<UUID> {
 
     @Column(name = "cin", unique = true)
@@ -35,8 +35,8 @@ public class User extends BaseEntity<UUID> {
     private String password;
     @Column(name = "picture")
     private String picture;
-    @Column(name = "is_enabled" , nullable = false)
-    private Boolean isEnabled;
+    @Column(name = "is_account_non_locked" , nullable = false)
+    private Boolean isAccountNonLocked;
     @Column(name = "is_email_verified" , nullable = false)
     private Boolean isEmailVerified;
     @Column(name = "logged_at")
@@ -45,6 +45,16 @@ public class User extends BaseEntity<UUID> {
     @Column(name = "role_name" , insertable = false , updatable = false)
     private RoleType role;
 
-
-
+    public User(User user) {
+        this.cin = user.getCin();
+        this.firstName = user.getFirstName();
+        this.lastName = user.getLastName();
+        this.email = user.getEmail();
+        this.password = user.getPassword();
+        this.picture = user.getPicture();
+        this.isAccountNonLocked = user.getIsAccountNonLocked();
+        this.isEmailVerified = user.getIsEmailVerified();
+        this.loggedAt = user.getLoggedAt();
+        this.role = user.getRole();
+    }
 }

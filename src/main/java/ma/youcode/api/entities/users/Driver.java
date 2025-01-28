@@ -23,4 +23,5 @@ public class Driver extends User {
     @Embedded
     private Coordinates coordinates;
 
+
 }

@@ -19,7 +19,7 @@ public record UserResponseDTO(
         String picture,
         Coordinates coordinates,
         String phoneNumber,
-        Boolean isEnabled,
+        Boolean isAccountNonLocked,
         Boolean isEmailVerified,
         RoleType role
 ) {

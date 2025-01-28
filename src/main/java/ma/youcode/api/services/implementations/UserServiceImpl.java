@@ -41,11 +41,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO create(UserRequestDTO dto , UserType userType) {
+    public void create(UserRequestDTO dto , UserType userType) {
         User user = UserFactory.build(dto , userType);
-        user.setIsEnabled(false);
+        user.setIsAccountNonLocked(false);
         user.setIsEmailVerified(false);
-        return userMapper.toResponseDTO(userRepository.save(user));
+        userRepository.save(user);
     }
 
     @Override
@@ -58,6 +58,33 @@ public class UserServiceImpl implements UserService {
             }
             return userMapper.toResponseDTO(user);
         });
+
+    }
+
+    @Override
+    public void lockAccount(UUID uuid) {
+        findAndExecute(uuid , user -> {
+            if (user.getIsAccountNonLocked()){
+                throw new IllegalArgumentException("Account is already locked");
+            }
+            user.setIsAccountNonLocked(true);
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    public void unLockAccount(UUID uuid) {
+        findAndExecute(uuid , user -> {
+            if (!user.getIsAccountNonLocked()){
+                throw new IllegalArgumentException("Account is already unlocked");
+            }
+            user.setIsAccountNonLocked(false);
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    public void logout() {
 
     }
 }

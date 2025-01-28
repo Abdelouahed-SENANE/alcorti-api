@@ -16,7 +16,7 @@ public interface UserFactory {
                         .email(dto.email())
                         .cin(dto.cin())
                         .password(dto.password())
-                        .isEnabled(true)
+                        .isAccountNonLocked(true)
                         .isEmailVerified(true)
                         .build();
                 case DRIVER -> Driver.builder()
@@ -25,7 +25,7 @@ public interface UserFactory {
                         .email(dto.email())
                         .password(dto.password())
                         .phoneNumber(dto.phoneNumber())
-                        .isEnabled(false)
+                        .isAccountNonLocked(false)
                         .isEmailVerified(false)
                         .cin(dto.cin())
                         .coordinates(dto.coordinates())
