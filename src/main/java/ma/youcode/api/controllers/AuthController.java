@@ -1,10 +1,13 @@
 package ma.youcode.api.controllers;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import ma.youcode.api.constants.UserType;
-import ma.youcode.api.dtos.requests.LoginRequestDTO;
-import ma.youcode.api.dtos.requests.UserRequestDTO;
-import ma.youcode.api.dtos.responses.LoginResponseDTO;
+import ma.youcode.api.payload.requests.LoginRequestDTO;
+import ma.youcode.api.payload.requests.RefreshTokenRequestDTO;
+import ma.youcode.api.payload.requests.UserRequestDTO;
+import ma.youcode.api.payload.responses.LoginResponseDTO;
 import ma.youcode.api.services.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -38,9 +41,15 @@ public class AuthController {
     }
 
     @PostMapping(value = {"/login"})
-    public ResponseEntity<SimpleSuccessDTO> handleLogin(@RequestBody @Validated({OnCreate.class}) LoginRequestDTO request) {
+    public ResponseEntity<SimpleSuccessDTO> handleLogin(@RequestBody @Valid LoginRequestDTO request) {
         LoginResponseDTO responseDTO = authService.login(request);
         return simpleSuccess(200, "Logged in successfully." , responseDTO);
+    }
+
+    @PostMapping(value = {"/refresh"})
+    public ResponseEntity<SimpleSuccessDTO> handleRefreshToken(@RequestBody @Valid RefreshTokenRequestDTO dto) {
+        LoginResponseDTO responseDTO = authService.refreshToken(dto.refreshToken());
+        return simpleSuccess(200, "Token is refreshed successfully." , responseDTO);
     }
 
 

@@ -1,25 +1,27 @@
-package ma.youcode.api.services.implementations.auth;
+package ma.youcode.api.security.services;
 
 import lombok.RequiredArgsConstructor;
 import ma.youcode.api.repositories.UserRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
+    private static final Logger log = LogManager.getLogger(UserDetailsServiceImpl.class);
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email)
+    public UserDetails loadUserByUsername(String cin) throws UsernameNotFoundException {
+
+        return userRepository.findByCin(cin)
                 .map(UserPrincipal::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }

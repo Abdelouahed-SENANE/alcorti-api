@@ -1,11 +1,10 @@
-package ma.youcode.api.security;
+package ma.youcode.api.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import ma.youcode.api.services.implementations.auth.UserPrincipal;
+import ma.youcode.api.security.services.UserPrincipal;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,10 +15,10 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
-
 public class JwtTokenProvider {
 
     private final String SECRET_KEY;
@@ -52,17 +51,19 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    public Date getExpiryFromToken(String token) {
-        return  Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration();
-
+    public String generateTokenFromUserId(UUID userId) {
+        Instant expiryDate = Instant.now().plusMillis(JWT_EXPIRATION);
+        return Jwts.builder()
+                .claims()
+                .subject(userId.toString())
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(expiryDate))
+                .and()
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
+                .compact();
     }
 
-    public long getExpiration(String token) {
+    public long getExpiration() {
         return JWT_EXPIRATION;
     }
 

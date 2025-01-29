@@ -1,4 +1,4 @@
-package ma.youcode.api.dtos.responses;
+package ma.youcode.api.payload.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -8,6 +8,8 @@ public record LoginResponseDTO(
         @JsonProperty("access_token")
         String accessToken,
         @JsonProperty("refresh_token")
-        String refreshToken
+        String refreshToken,
+        @JsonProperty("expiration_time")
+        Long expirationTime
 ) {
 }

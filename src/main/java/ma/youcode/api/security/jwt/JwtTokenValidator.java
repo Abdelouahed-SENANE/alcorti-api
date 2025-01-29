@@ -1,9 +1,9 @@
-package ma.youcode.api.security;
+package ma.youcode.api.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import ma.youcode.api.exceptions.InvalidTokenRequestException;
+import ma.youcode.api.exceptions.auth.InvalidTokenRequestException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;

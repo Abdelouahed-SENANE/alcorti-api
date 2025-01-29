@@ -1,6 +1,6 @@
 package ma.youcode.api.repositories;
 
-import ma.youcode.api.entities.users.User;
+import ma.youcode.api.models.users.User;
 import org.springframework.stereotype.Repository;
 import org.starter.utilities.repositories.GenericRepository;
 

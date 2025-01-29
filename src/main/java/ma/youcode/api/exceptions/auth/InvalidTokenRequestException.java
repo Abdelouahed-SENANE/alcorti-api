@@ -1,4 +1,4 @@
-package ma.youcode.api.exceptions;
+package ma.youcode.api.exceptions.auth;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

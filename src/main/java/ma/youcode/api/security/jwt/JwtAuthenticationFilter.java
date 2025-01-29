@@ -1,14 +1,11 @@
-package ma.youcode.api.security;
+package ma.youcode.api.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import ma.youcode.api.services.implementations.auth.UserDetailsServiceImpl;
-import ma.youcode.api.services.implementations.auth.UserPrincipal;
+import ma.youcode.api.security.services.UserDetailsServiceImpl;
+import ma.youcode.api.security.services.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String tokenHeader;
     @Value("${app.jwt.prefix}")
     private String tokenPrefix;
+
     @Autowired
     private  JwtTokenValidator jwtTokenValidator;
     @Autowired

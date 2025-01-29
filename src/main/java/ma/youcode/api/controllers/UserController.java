@@ -1,9 +1,9 @@
 package ma.youcode.api.controllers;
 
 import lombok.RequiredArgsConstructor;
-import ma.youcode.api.dtos.requests.UserRequestDTO;
-import ma.youcode.api.dtos.responses.UserResponseDTO;
-import ma.youcode.api.entities.users.User;
+import ma.youcode.api.payload.requests.UserRequestDTO;
+import ma.youcode.api.payload.responses.UserResponseDTO;
+import ma.youcode.api.models.users.User;
 import ma.youcode.api.services.UserService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

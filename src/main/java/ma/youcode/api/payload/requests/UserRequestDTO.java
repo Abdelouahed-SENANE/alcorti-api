@@ -1,4 +1,4 @@
-package ma.youcode.api.dtos.requests;
+package ma.youcode.api.payload.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import ma.youcode.api.annotations.validation.FileGuard;
-import ma.youcode.api.entities.users.User;
+import ma.youcode.api.models.users.User;
 import ma.youcode.api.utilities.shared.Coordinates;
 import org.springframework.web.multipart.MultipartFile;
 import org.starter.utilities.annotations.validation.Unique;

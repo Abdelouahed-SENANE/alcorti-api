@@ -1,4 +1,4 @@
-package ma.youcode.api.dtos.responses;
+package ma.youcode.api.payload.responses;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;

@@ -1,18 +1,21 @@
-package ma.youcode.api.security;
+package ma.youcode.api.security.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -33,7 +36,15 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         if (!response.isCommitted()) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User is unauthorized to access this resource.");
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+            final Map<String , Object> body = new HashMap<>();
+            body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
+            body.put("error", "Unauthorized");
+            body.put("message", "Login required to access this resource.");
+            body.put("path", request.getServletPath());
+            response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         }
     }
 }
