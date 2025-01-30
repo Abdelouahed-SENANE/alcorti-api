@@ -12,11 +12,11 @@ import java.util.Collections;
 import java.util.UUID;
 
 
-public class UserPrincipal extends User implements UserDetails {
+public class UserSecurity extends User implements UserDetails {
 
-    private static final Logger log = LogManager.getLogger(UserPrincipal.class);
+    private static final Logger log = LogManager.getLogger(UserSecurity.class);
 
-    public UserPrincipal(final User user) {
+    public UserSecurity(final User user) {
         super(user);
     }
     @Override

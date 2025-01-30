@@ -1,11 +1,13 @@
 package ma.youcode.api.services.implementations;
 
 import lombok.RequiredArgsConstructor;
+import ma.youcode.api.annotations.CurrentUser;
 import ma.youcode.api.constants.UserType;
-import ma.youcode.api.payload.requests.UserRequestDTO;
-import ma.youcode.api.payload.responses.UserResponseDTO;
 import ma.youcode.api.models.users.User;
+import ma.youcode.api.payloads.requests.UserRequest;
+import ma.youcode.api.payloads.responses.UserResponse;
 import ma.youcode.api.repositories.UserRepository;
+import ma.youcode.api.security.services.UserSecurity;
 import ma.youcode.api.services.FileStorageService;
 import ma.youcode.api.services.UserService;
 import ma.youcode.api.utilities.factories.UserFactory;
@@ -30,6 +32,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final FileStorageService fileStorageService;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public GenericRepository<User, UUID> getRepository() {
@@ -37,12 +40,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GenericMapper<User, UserResponseDTO, UserRequestDTO> getMapper() {
+    public GenericMapper<User, UserResponse, UserRequest> getMapper() {
         return userMapper;
     }
 
     @Override
-    public void create(UserRequestDTO dto , UserType userType) {
+    public void create(UserRequest dto , UserType userType) {
         User user = UserFactory.build(dto , userType);
         user.setIsAccountNonLocked(false);
         user.setIsEmailVerified(false);
@@ -51,7 +54,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO update(UUID uuid, UserRequestDTO dto) {
+    public UserResponse update(UUID uuid, UserRequest dto) {
 
         return findAndExecute(uuid , user -> {
             userMapper.updateEntity(dto , user);
@@ -86,7 +89,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void logout() {
+    public void logout(UserSecurity user) {
+        refreshTokenService.loadRefreshTokenByUserId(user.getId()).ifPresent(refreshTokenService::delete);
+    }
 
+    @Override
+    public UserResponse readCurrentUser(@CurrentUser UserSecurity user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .cin(user.getCin())
+                .picture(user.getPicture())
+                .role(user.getRole())
+                .build();
     }
 }

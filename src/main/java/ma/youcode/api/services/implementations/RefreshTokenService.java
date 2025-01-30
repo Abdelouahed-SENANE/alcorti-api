@@ -1,19 +1,16 @@
-package ma.youcode.api.security.services;
+package ma.youcode.api.services.implementations;
 
 import lombok.RequiredArgsConstructor;
-import ma.youcode.api.exceptions.ResourceNotFoundException;
 import ma.youcode.api.exceptions.auth.RefreshTokenException;
 import ma.youcode.api.models.tokens.RefreshToken;
-import ma.youcode.api.models.users.User;
 import ma.youcode.api.repositories.RefreshTokenRepository;
-import ma.youcode.api.repositories.UserRepository;
+import ma.youcode.api.security.services.UserSecurity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.html.Option;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,32 +20,21 @@ import java.util.UUID;
 public class RefreshTokenService {
 
     private static final Logger log = LogManager.getLogger(RefreshTokenService.class);
-    @Value("${app.jwt.refresh.expiration}")
+    @Value("${jwt.refresh.expiration}")
     private Long refreshTokenExpirationMs;
 
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
-    public RefreshToken createRefreshToken(UserPrincipal user) {
+    public String createRefreshToken(UserSecurity user) {
 
         RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId())
                 .orElse(new RefreshToken());
         refreshToken.setUser(user);
-        refreshToken.setToken(UUID.randomUUID().toString()); // Set other properties as needed
-        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpirationMs)); // Example expiry date
+        refreshToken.setToken(UUID.randomUUID().toString());
+        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpirationMs));
 
-
-//         refreshTokenRepository.findByUserId(user.getId())
-//                .map(RefreshToken::getId)
-//                .ifPresent(refreshTokenRepository::deleteById);
-//
-//        RefreshToken refreshToken = RefreshToken.builder()
-//                .user(user)
-//                .expiryDate(Instant.now().plusMillis(refreshTokenExpirationMs))
-//                .token(UUID.randomUUID().toString())
-//                .build();
-
-        return refreshTokenRepository.save(refreshToken);
+        return refreshTokenRepository.save(refreshToken).getToken();
     }
 
     public RefreshToken verifyExpiration(RefreshToken refreshToken) {
@@ -63,5 +49,12 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
+    public Optional<RefreshToken> loadRefreshTokenByUserId(UUID userId) {
+        return refreshTokenRepository.findByUserId(userId);
+    }
+
+    public void delete(RefreshToken refreshToken) {
+        refreshTokenRepository.delete(refreshToken);
+    }
 
 }

@@ -1,19 +1,17 @@
 package ma.youcode.api.services.implementations;
 
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import ma.youcode.api.constants.UserType;
-import ma.youcode.api.exceptions.ResourceNotFoundException;
 import ma.youcode.api.exceptions.auth.RefreshTokenException;
-import ma.youcode.api.models.tokens.RefreshToken;
-import ma.youcode.api.payload.requests.LoginRequestDTO;
-import ma.youcode.api.payload.requests.UserRequestDTO;
-import ma.youcode.api.payload.responses.LoginResponseDTO;
-import ma.youcode.api.payload.responses.UserResponseDTO;
 import ma.youcode.api.exceptions.auth.UserLoginException;
+import ma.youcode.api.models.tokens.RefreshToken;
+import ma.youcode.api.payloads.requests.AuthRequest;
+import ma.youcode.api.payloads.requests.UserRequest;
+import ma.youcode.api.payloads.responses.JwtResponse;
 import ma.youcode.api.security.jwt.JwtTokenProvider;
-import ma.youcode.api.security.services.RefreshTokenService;
-import ma.youcode.api.security.services.UserPrincipal;
+import ma.youcode.api.security.services.UserSecurity;
 import ma.youcode.api.services.AuthService;
 import ma.youcode.api.services.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -39,32 +37,31 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
 
     @Override
-    public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
-        Authentication authentication = getAuthentication(loginRequestDTO);
+    public JwtResponse login(AuthRequest authRequest , HttpServletResponse response) {
+
+        Authentication authentication = getAuthentication(authRequest);
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserSecurity userSecurity = (UserSecurity) authentication.getPrincipal();
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        String accessToken = jwtTokenProvider.generateToken(userSecurity);
+        String refreshToken = refreshTokenService.createRefreshToken(userSecurity);
 
-        String accessToken = jwtTokenProvider.generateToken(userPrincipal);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userPrincipal);
-
-        return LoginResponseDTO.builder()
+        return JwtResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken.getToken())
+                .refreshToken(refreshToken)
                 .expirationTime(jwtTokenProvider.getExpiration())
                 .build();
 
     }
 
     @Override
-    public LoginResponseDTO refreshToken(String refreshToken) {
-
+    public JwtResponse refresh(String refreshToken) {
         return refreshTokenService.findByToken(refreshToken)
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
                     String accessToken = jwtTokenProvider.generateTokenFromUserId(user.getId());
-                    return LoginResponseDTO.builder()
+                    return JwtResponse.builder()
                             .accessToken(accessToken)
                             .refreshToken(refreshToken)
                             .expirationTime(jwtTokenProvider.getExpiration())
@@ -75,19 +72,14 @@ public class AuthServiceImpl implements AuthService {
                 });
     }
 
-    private Authentication getAuthentication(LoginRequestDTO loginDTO) {
+    private Authentication getAuthentication(AuthRequest loginDTO) {
         return Optional.ofNullable(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.cin(), loginDTO.password())))
                 .orElseThrow(() -> new UserLoginException("Could not log in"));
     }
 
     @Override
-    public void register(UserRequestDTO requestDTO, UserType userType) {
+    public void register(UserRequest requestDTO, UserType userType) {
         userService.create(requestDTO, userType);
     }
 
-
-    @Override
-    public void logout() {
-
-    }
 }

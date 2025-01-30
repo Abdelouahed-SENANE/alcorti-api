@@ -4,44 +4,46 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import ma.youcode.api.security.services.UserDetailsServiceImpl;
-import ma.youcode.api.security.services.UserPrincipal;
-import org.springframework.beans.factory.annotation.Autowired;
+import ma.youcode.api.security.services.UserSecurity;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
-
+@RequiredArgsConstructor
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Value("${app.jwt.header}")
-    private String tokenHeader;
-    @Value("${app.jwt.prefix}")
-    private String tokenPrefix;
 
-    @Autowired
-    private  JwtTokenValidator jwtTokenValidator;
-    @Autowired
-    private  JwtTokenProvider jwtTokenProvider;
-    @Autowired
-    private  UserDetailsServiceImpl userDetailsService;
+    private @Value("${JWT_HEADER}") String AUTHORIZATION;
+    private @Value("${JWT_PREFIX}") String BEARER;
+    private static final Logger log = LogManager.getLogger(JwtAuthenticationFilter.class);
+
+    private final JwtTokenValidator jwtTokenValidator;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String token = extractTokenFromRequest(request);
+
         try {
-            if (StringUtils.hasText(token) && jwtTokenValidator.validateToken(token)) {
+            if (StringUtils.hasText(token)  && jwtTokenValidator.validateToken(token)) {
                 String cin = jwtTokenProvider.getCinFromToken(token);
-                UserPrincipal userPrincipal = (UserPrincipal) userDetailsService.loadUserByCin(cin);
-                List<GrantedAuthority> authorities = jwtTokenProvider.getAuthoritiesFromJwt(token);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userPrincipal, token, authorities);
+                UserSecurity userSecurity = (UserSecurity) userDetailsService.loadUserByCin(cin);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userSecurity, token, userSecurity.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
@@ -50,15 +52,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throw ex;
         }
         filterChain.doFilter(request, response);
-
     }
 
 
     private String extractTokenFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader(tokenHeader);
-        if (bearerToken == null || !bearerToken.startsWith(tokenPrefix)) {
+        String bearerToken = request.getHeader(AUTHORIZATION);
+
+        if (bearerToken == null || !bearerToken.startsWith(BEARER)) {
+            log.info("Bearer token not found in request header");
             return null;
         }
-        return bearerToken.replace(tokenPrefix, "");
+
+        return bearerToken.replace(BEARER + " ", "");
     }
+//
+//    private String extractAccessTokenFromRequest(HttpServletRequest request) {
+//        if (request.getCookies() == null) return null;
+//        return Arrays.stream(request.getCookies())
+//                .filter(cookie -> cookie.getName().equals("access_token"))
+//                .findFirst()
+//                .map(Cookie::getValue)
+//                .orElse(null);
+//    }
 }

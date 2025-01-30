@@ -1,4 +1,4 @@
-package ma.youcode.api.payload.requests;
+package ma.youcode.api.payloads.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -14,7 +14,7 @@ import org.starter.utilities.markers.validation.OnCreate;
 import org.starter.utilities.markers.validation.OnUpdate;
 
 @Builder
-public record UserRequestDTO
+public record UserRequest
         (
                 @NotBlank(groups = OnCreate.class)
                 @Unique(groups = OnCreate.class, entity = User.class, field = "cin", message = "CIN already exists.")

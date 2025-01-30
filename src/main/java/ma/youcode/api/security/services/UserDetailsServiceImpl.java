@@ -22,12 +22,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String cin) throws UsernameNotFoundException {
 
         return userRepository.findByCin(cin)
-                .map(UserPrincipal::new)
+                .map(UserSecurity::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
     public UserDetails loadUserByCin(String cin) throws UsernameNotFoundException {
         return userRepository.findByCin(cin)
-                .map(UserPrincipal::new)
+                .map(UserSecurity::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }

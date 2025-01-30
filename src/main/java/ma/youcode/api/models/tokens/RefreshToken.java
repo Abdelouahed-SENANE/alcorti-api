@@ -5,7 +5,6 @@ import lombok.*;
 import ma.youcode.api.models.users.User;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Entity(name = "REFRESH_TOKEN")
 @Getter

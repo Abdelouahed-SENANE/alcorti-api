@@ -1,10 +1,10 @@
-package ma.youcode.api.payload.responses;
+package ma.youcode.api.payloads.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
 @Builder
-public record LoginResponseDTO(
+public record JwtResponse(
         @JsonProperty("access_token")
         String accessToken,
         @JsonProperty("refresh_token")

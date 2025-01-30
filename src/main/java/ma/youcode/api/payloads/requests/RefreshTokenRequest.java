@@ -1,8 +1,8 @@
-package ma.youcode.api.payload.requests;
+package ma.youcode.api.payloads.requests;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record RefreshTokenRequestDTO(
+public record RefreshTokenRequest(
         @NotBlank
     String refreshToken
 ) {

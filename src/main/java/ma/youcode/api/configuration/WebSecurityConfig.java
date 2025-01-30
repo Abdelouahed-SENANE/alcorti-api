@@ -30,11 +30,11 @@ public class WebSecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationEntryPoint jwtEntryPoint;
-
-    @Bean
-    public JwtAuthenticationFilter jwtFilter() {
-        return new JwtAuthenticationFilter();
-    }
+    private final JwtAuthenticationFilter jwtFilter;
+//    @Bean
+//    public JwtAuthenticationFilter jwtFilter() {
+//        return new JwtAuthenticationFilter();
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -61,7 +61,7 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/auth/**").permitAll()

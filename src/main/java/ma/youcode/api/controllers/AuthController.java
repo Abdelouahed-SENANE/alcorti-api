@@ -1,13 +1,13 @@
 package ma.youcode.api.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import ma.youcode.api.constants.UserType;
-import ma.youcode.api.payload.requests.LoginRequestDTO;
-import ma.youcode.api.payload.requests.RefreshTokenRequestDTO;
-import ma.youcode.api.payload.requests.UserRequestDTO;
-import ma.youcode.api.payload.responses.LoginResponseDTO;
+import ma.youcode.api.payloads.requests.AuthRequest;
+import ma.youcode.api.payloads.requests.RefreshTokenRequest;
+import ma.youcode.api.payloads.requests.UserRequest;
+import ma.youcode.api.payloads.responses.JwtResponse;
 import ma.youcode.api.services.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -29,26 +29,27 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping(value = {"/register/customers"})
-    public ResponseEntity<SimpleSuccessDTO> handleRegisterCustomer(@RequestBody @Validated({OnCreate.class}) UserRequestDTO request) {
+    public ResponseEntity<SimpleSuccessDTO> handleRegisterCustomer(@RequestBody @Validated({OnCreate.class}) UserRequest request) {
         authService.register(request, UserType.CUSTOMER);
         return simpleSuccess(201, "Customer created successfully.");
     }
 
     @PostMapping(value = {"/register/drivers"})
-    public ResponseEntity<SimpleSuccessDTO> handleRegisterDriver(@RequestBody @Validated({OnCreate.class}) UserRequestDTO request) {
+    public ResponseEntity<SimpleSuccessDTO> handleRegisterDriver(@RequestBody @Validated({OnCreate.class}) UserRequest request) {
         authService.register(request, UserType.DRIVER);
         return simpleSuccess(201, "Driver created successfully.");
     }
 
     @PostMapping(value = {"/login"})
-    public ResponseEntity<SimpleSuccessDTO> handleLogin(@RequestBody @Valid LoginRequestDTO request) {
-        LoginResponseDTO responseDTO = authService.login(request);
+    public ResponseEntity<SimpleSuccessDTO> handleLogin(@RequestBody @Valid AuthRequest request , HttpServletResponse response) {
+
+        JwtResponse responseDTO = authService.login(request , response);
         return simpleSuccess(200, "Logged in successfully." , responseDTO);
     }
 
     @PostMapping(value = {"/refresh"})
-    public ResponseEntity<SimpleSuccessDTO> handleRefreshToken(@RequestBody @Valid RefreshTokenRequestDTO dto) {
-        LoginResponseDTO responseDTO = authService.refreshToken(dto.refreshToken());
+    public ResponseEntity<SimpleSuccessDTO> handleRefreshToken(@RequestBody @Valid RefreshTokenRequest dto) {
+        JwtResponse responseDTO = authService.refresh(dto.refreshToken());
         return simpleSuccess(200, "Token is refreshed successfully." , responseDTO);
     }
 

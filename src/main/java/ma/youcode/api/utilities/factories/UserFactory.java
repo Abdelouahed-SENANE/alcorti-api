@@ -1,14 +1,14 @@
 package ma.youcode.api.utilities.factories;
 
 import ma.youcode.api.constants.UserType;
-import ma.youcode.api.payload.requests.UserRequestDTO;
 import ma.youcode.api.models.users.Admin;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;
 import ma.youcode.api.models.users.User;
+import ma.youcode.api.payloads.requests.UserRequest;
 
 public interface UserFactory {
-    static User build(UserRequestDTO dto, UserType userType) {
+    static User build(UserRequest dto, UserType userType) {
             return switch (userType) {
                 case ADMIN -> Admin.builder()
                         .firstName(dto.firstName())
