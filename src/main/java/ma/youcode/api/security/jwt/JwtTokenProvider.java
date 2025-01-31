@@ -1,9 +1,10 @@
 package ma.youcode.api.security.jwt;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import ma.youcode.api.security.services.UserSecurity;
+import ma.youcode.api.models.users.UserSecurity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,19 +30,42 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(userSecurity.getCin())
+                .claim("email", userSecurity.getEmail())
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(expiryDate))
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
-    public String getCinFromToken(String token) {
+    public Claims decodeToken(String token) {
         return  Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+                .getPayload();
     }
+    public String getCinOrEmailFromToken(String token) {
+        Claims claims = decodeToken(token);
+        String cin = claims.getSubject();
+        String email = claims.get("email", String.class);
+        return cin != null ? cin : email;
+
+    }
+//    public String getCinFromToken(String token) {
+//        return  Jwts.parser()
+//                .verifyWith(getSigningKey())
+//                .build()
+//                .parseSignedClaims(token)
+//                .getPayload()
+//                .getSubject();
+//    }
+//    public String getEmailFromToken(String token) {
+//        return  Jwts.parser()
+//                .verifyWith(getSigningKey())
+//                .build()
+//                .parseSignedClaims(token)
+//                .getPayload()
+//                .get("email", String.class);
+//    }
     public Date getExpirationFromToken(String token) {
         return  Jwts.parser()
                 .verifyWith(getSigningKey())

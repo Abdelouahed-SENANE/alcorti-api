@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import ma.youcode.api.security.services.UserDetailsServiceImpl;
-import ma.youcode.api.security.services.UserSecurity;
+import ma.youcode.api.models.users.UserSecurity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,8 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             if (StringUtils.hasText(token)  && jwtTokenValidator.validateToken(token)) {
-                String cin = jwtTokenProvider.getCinFromToken(token);
-                UserSecurity userSecurity = (UserSecurity) userDetailsService.loadUserByCin(cin);
+                String cinOrEmail = jwtTokenProvider.getCinOrEmailFromToken(token);
+                UserSecurity userSecurity = (UserSecurity) userDetailsService.loadUserByUsername(cinOrEmail);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userSecurity, token, userSecurity.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);

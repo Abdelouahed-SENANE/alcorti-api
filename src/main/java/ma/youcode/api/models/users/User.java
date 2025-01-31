@@ -38,8 +38,8 @@ public class User extends Auditable{
     private String password;
     @Column(name = "picture")
     private String picture;
-    @Column(name = "is_account_non_locked" , nullable = false)
-    private Boolean isAccountNonLocked;
+    @Column(name = "is_active" , nullable = false)
+    private Boolean active;
     @Column(name = "is_email_verified" , nullable = false)
     private Boolean isEmailVerified;
     @Column(name = "logged_at")
@@ -56,7 +56,7 @@ public class User extends Auditable{
         this.email = user.getEmail();
         this.password = user.getPassword();
         this.picture = user.getPicture();
-        this.isAccountNonLocked = user.getIsAccountNonLocked();
+        this.active = user.getActive();
         this.isEmailVerified = user.getIsEmailVerified();
         this.loggedAt = user.getLoggedAt();
         this.role = user.getRole();

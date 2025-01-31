@@ -7,7 +7,7 @@ import ma.youcode.api.models.users.User;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
 import ma.youcode.api.repositories.UserRepository;
-import ma.youcode.api.security.services.UserSecurity;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.services.FileStorageService;
 import ma.youcode.api.services.UserService;
 import ma.youcode.api.utilities.factories.UserFactory;
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void create(UserRequest dto , UserType userType) {
         User user = UserFactory.build(dto , userType);
-        user.setIsAccountNonLocked(false);
+        user.setActive(true);
         user.setIsEmailVerified(false);
         user.setPassword(passwordEncoder.encode(dto.password()));
         userRepository.save(user);
@@ -67,23 +67,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void lockAccount(UUID uuid) {
+    public void disableAccount(UUID uuid) {
         findAndExecute(uuid , user -> {
-            if (!user.getIsAccountNonLocked()){
+            if (!user.getActive()){
                 throw new IllegalArgumentException("Account is already locked");
             }
-            user.setIsAccountNonLocked(false);
+            user.setActive(false);
             userRepository.save(user);
         });
     }
 
     @Override
-    public void unLockAccount(UUID uuid) {
+    public void enableAccount(UUID uuid) {
         findAndExecute(uuid , user -> {
-            if (user.getIsAccountNonLocked()){
-                throw new IllegalArgumentException("Account is already unlocked");
+            if (user.getActive()){
+                throw new IllegalArgumentException("Account is already active");
             }
-            user.setIsAccountNonLocked(true);
+            user.setActive(true);
             userRepository.save(user);
         });
     }

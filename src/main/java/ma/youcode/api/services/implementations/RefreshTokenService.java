@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import ma.youcode.api.exceptions.auth.RefreshTokenException;
 import ma.youcode.api.models.tokens.RefreshToken;
 import ma.youcode.api.repositories.RefreshTokenRepository;
-import ma.youcode.api.security.services.UserSecurity;
+import ma.youcode.api.models.users.UserSecurity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;

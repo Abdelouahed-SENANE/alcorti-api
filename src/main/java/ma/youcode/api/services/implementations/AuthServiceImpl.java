@@ -11,7 +11,7 @@ import ma.youcode.api.payloads.requests.AuthRequest;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.JwtResponse;
 import ma.youcode.api.security.jwt.JwtTokenProvider;
-import ma.youcode.api.security.services.UserSecurity;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.services.AuthService;
 import ma.youcode.api.services.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -73,7 +73,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Authentication getAuthentication(AuthRequest loginDTO) {
-        return Optional.ofNullable(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.cin(), loginDTO.password())))
+        String cinOrEmail = loginDTO.email() != null ? loginDTO.email() : loginDTO.cin();
+        return Optional.ofNullable(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(cinOrEmail, loginDTO.password())))
                 .orElseThrow(() -> new UserLoginException("Could not log in"));
     }
 

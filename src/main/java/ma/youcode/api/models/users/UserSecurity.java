@@ -1,6 +1,5 @@
-package ma.youcode.api.security.services;
+package ma.youcode.api.models.users;
 
-import ma.youcode.api.models.users.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.GrantedAuthority;
@@ -47,7 +46,7 @@ public class UserSecurity extends User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return super.getIsAccountNonLocked();
+        return super.getActive();
     }
 
     @Override

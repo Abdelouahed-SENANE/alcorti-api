@@ -1,6 +1,7 @@
 package ma.youcode.api.security.services;
 
 import lombok.RequiredArgsConstructor;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.repositories.UserRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,15 +20,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String cin) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String cinOrEmail) throws UsernameNotFoundException {
 
-        return userRepository.findByCin(cin)
+        return userRepository.findByCinOrEmail(cinOrEmail , cinOrEmail)
                 .map(UserSecurity::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
-    public UserDetails loadUserByCin(String cin) throws UsernameNotFoundException {
-        return userRepository.findByCin(cin)
-                .map(UserSecurity::new)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
+
 }

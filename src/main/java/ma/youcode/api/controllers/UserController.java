@@ -6,7 +6,7 @@ import ma.youcode.api.events.OnUserLogoutSuccessEvent;
 import ma.youcode.api.models.users.User;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
-import ma.youcode.api.security.services.UserSecurity;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.services.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,17 +53,17 @@ public class UserController implements
         return Response.simpleSuccess(200, "Customer updated successfully.", responseDTO);
     }
 
-    @PatchMapping(value = {"/{id}/lock"})
-    public ResponseEntity<SimpleSuccessDTO> handleLockAccount(@PathVariable UUID id
+    @PatchMapping(value = {"/{id}/disable"})
+    public ResponseEntity<SimpleSuccessDTO> handleDisableAccount(@PathVariable UUID id
     ) {
-        userService.lockAccount(id);
+        userService.disableAccount(id);
         return Response.simpleSuccess(200, "Account locked successfully.");
     }
 
-    @PatchMapping(value = {"/{id}/unlock"})
-    public ResponseEntity<SimpleSuccessDTO> handleUnlockAccount(@PathVariable UUID id
+    @PatchMapping(value = {"/{id}/enable"})
+    public ResponseEntity<SimpleSuccessDTO> handleEnableAccount(@PathVariable UUID id
     ) {
-         userService.unLockAccount(id);
+         userService.enableAccount(id);
         return Response.simpleSuccess(200, "Account unlocked successfully.");
     }
 
