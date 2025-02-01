@@ -1,10 +1,12 @@
 package ma.youcode.api.services.implementations;
 
 import lombok.RequiredArgsConstructor;
+import ma.youcode.api.annotations.CurrentUser;
 import ma.youcode.api.constants.UserType;
-import ma.youcode.api.dtos.requests.UserRequestDTO;
-import ma.youcode.api.dtos.responses.UserResponseDTO;
-import ma.youcode.api.entities.users.User;
+import ma.youcode.api.models.users.User;
+import ma.youcode.api.models.users.UserSecurity;
+import ma.youcode.api.payloads.requests.UserRequest;
+import ma.youcode.api.payloads.responses.UserResponse;
 import ma.youcode.api.repositories.UserRepository;
 import ma.youcode.api.services.FileStorageService;
 import ma.youcode.api.services.UserService;
@@ -12,6 +14,7 @@ import ma.youcode.api.utilities.factories.UserFactory;
 import ma.youcode.api.utilities.mappers.UserMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.starter.utilities.mappers.GenericMapper;
@@ -28,7 +31,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final FileStorageService fileStorageService;
-
+    private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public GenericRepository<User, UUID> getRepository() {
@@ -36,20 +40,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GenericMapper<User, UserResponseDTO, UserRequestDTO> getMapper() {
+    public GenericMapper<User, UserResponse, UserRequest> getMapper() {
         return userMapper;
     }
 
     @Override
-    public UserResponseDTO create(UserRequestDTO dto , UserType userType) {
+    public void create(UserRequest dto , UserType userType) {
         User user = UserFactory.build(dto , userType);
-        user.setIsEnabled(false);
-        user.setIsEmailVerified(false);
-        return userMapper.toResponseDTO(userRepository.save(user));
+        user.setActive(true);
+        user.setIsEmailVerified(true);
+        user.setPassword(passwordEncoder.encode(dto.password()));
+        userRepository.save(user);
     }
 
     @Override
-    public UserResponseDTO update(UUID uuid, UserRequestDTO dto) {
+    public UserResponse update(UUID uuid, UserRequest dto) {
 
         return findAndExecute(uuid , user -> {
             userMapper.updateEntity(dto , user);
@@ -59,5 +64,45 @@ public class UserServiceImpl implements UserService {
             return userMapper.toResponseDTO(user);
         });
 
+    }
+
+    @Override
+    public void disableAccount(UUID uuid) {
+        findAndExecute(uuid , user -> {
+            if (!user.getActive()){
+                throw new IllegalArgumentException("Account is already locked");
+            }
+            user.setActive(false);
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    public void enableAccount(UUID uuid) {
+        findAndExecute(uuid , user -> {
+            if (user.getActive()){
+                throw new IllegalArgumentException("Account is already active");
+            }
+            user.setActive(true);
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    public void logout(UserSecurity user) {
+        refreshTokenService.loadRefreshTokenByUserId(user.getId()).ifPresent(refreshTokenService::delete);
+    }
+
+    @Override
+    public UserResponse readCurrentUser(@CurrentUser UserSecurity user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .cin(user.getCin())
+                .picture(user.getPicture())
+                .role(user.getRole())
+                .build();
     }
 }

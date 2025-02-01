@@ -1,4 +1,4 @@
-package ma.youcode.api.dtos.responses;
+package ma.youcode.api.payloads.responses;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @Builder
-public record UserResponseDTO(
+public record UserResponse(
         UUID id,
         String cin,
         String firstName,
@@ -19,7 +19,7 @@ public record UserResponseDTO(
         String picture,
         Coordinates coordinates,
         String phoneNumber,
-        Boolean isEnabled,
+        Boolean isAccountNonLocked,
         Boolean isEmailVerified,
         RoleType role
 ) {

@@ -1,4 +1,4 @@
-package ma.youcode.api.entities.users;
+package ma.youcode.api.models.users;
 
 
 import jakarta.persistence.DiscriminatorValue;

@@ -4,6 +4,5 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.starter.utilities.exceptions.AbstractGlobalExceptionHandler;
 
 @RestControllerAdvice
-public class AdviceController extends AbstractGlobalExceptionHandler {
-
+public class GlobalControllerAdvice extends AbstractGlobalExceptionHandler {
 }

@@ -1,14 +1,14 @@
 package ma.youcode.api.utilities.factories;
 
 import ma.youcode.api.constants.UserType;
-import ma.youcode.api.dtos.requests.UserRequestDTO;
-import ma.youcode.api.entities.users.Admin;
-import ma.youcode.api.entities.users.Customer;
-import ma.youcode.api.entities.users.Driver;
-import ma.youcode.api.entities.users.User;
+import ma.youcode.api.models.users.Admin;
+import ma.youcode.api.models.users.Customer;
+import ma.youcode.api.models.users.Driver;
+import ma.youcode.api.models.users.User;
+import ma.youcode.api.payloads.requests.UserRequest;
 
 public interface UserFactory {
-    static User build(UserRequestDTO dto, UserType userType) {
+    static User build(UserRequest dto, UserType userType) {
             return switch (userType) {
                 case ADMIN -> Admin.builder()
                         .firstName(dto.firstName())
@@ -16,7 +16,7 @@ public interface UserFactory {
                         .email(dto.email())
                         .cin(dto.cin())
                         .password(dto.password())
-                        .isEnabled(true)
+                        .active(true)
                         .isEmailVerified(true)
                         .build();
                 case DRIVER -> Driver.builder()
@@ -25,7 +25,7 @@ public interface UserFactory {
                         .email(dto.email())
                         .password(dto.password())
                         .phoneNumber(dto.phoneNumber())
-                        .isEnabled(false)
+                        .active(true)
                         .isEmailVerified(false)
                         .cin(dto.cin())
                         .coordinates(dto.coordinates())
@@ -34,6 +34,7 @@ public interface UserFactory {
                         .firstName(dto.firstName())
                         .lastName(dto.lastName())
                         .email(dto.email())
+                        .active(true)
                         .password(dto.password())
                         .cin(dto.cin())
                         .phoneNumber(dto.phoneNumber())

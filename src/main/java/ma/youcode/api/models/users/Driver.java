@@ -1,4 +1,4 @@
-package ma.youcode.api.entities.users;
+package ma.youcode.api.models.users;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,6 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import ma.youcode.api.utilities.shared.Coordinates;
 
-@SuperBuilder(toBuilder = true)
 @Entity
 @Getter
 @Setter
@@ -16,11 +15,13 @@ import ma.youcode.api.utilities.shared.Coordinates;
 @Table(name = "DRIVERS")
 @AllArgsConstructor
 @NoArgsConstructor
+@SuperBuilder
 public class Driver extends User {
 
     @Column(name = "phone_number")
     private String phoneNumber;
     @Embedded
     private Coordinates coordinates;
+
 
 }
