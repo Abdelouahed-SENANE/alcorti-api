@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import ma.youcode.api.annotations.CurrentUser;
 import ma.youcode.api.constants.UserType;
 import ma.youcode.api.models.users.User;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
 import ma.youcode.api.repositories.UserRepository;
-import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.services.FileStorageService;
 import ma.youcode.api.services.UserService;
 import ma.youcode.api.utilities.factories.UserFactory;
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
     public void create(UserRequest dto , UserType userType) {
         User user = UserFactory.build(dto , userType);
         user.setActive(true);
-        user.setIsEmailVerified(false);
+        user.setIsEmailVerified(true);
         user.setPassword(passwordEncoder.encode(dto.password()));
         userRepository.save(user);
     }

@@ -7,15 +7,17 @@ import ma.youcode.api.constants.UserType;
 import ma.youcode.api.exceptions.auth.RefreshTokenException;
 import ma.youcode.api.exceptions.auth.UserLoginException;
 import ma.youcode.api.models.tokens.RefreshToken;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.AuthRequest;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.JwtResponse;
 import ma.youcode.api.security.jwt.JwtTokenProvider;
-import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.services.AuthService;
 import ma.youcode.api.services.UserService;
+import ma.youcode.api.utilities.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.HttpCookie;
 import java.util.Optional;
 
 @Service
@@ -39,13 +42,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public JwtResponse login(AuthRequest authRequest , HttpServletResponse response) {
 
-        Authentication authentication = getAuthentication(authRequest);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        Authentication authentication = authenticateUser(authRequest);
         UserSecurity userSecurity = (UserSecurity) authentication.getPrincipal();
+        String fingerprint = Utils.generateFingerprint();
+        String hashedFingerprint = Utils.hashFingerprint(fingerprint);
 
-        String accessToken = jwtTokenProvider.generateToken(userSecurity);
+        String accessToken = jwtTokenProvider.generateToken(userSecurity, hashedFingerprint);
         String refreshToken = refreshTokenService.createRefreshToken(userSecurity);
 
+        setFingerprintCookie(response , fingerprint);
         return JwtResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -53,6 +58,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
     }
+
 
     @Override
     public JwtResponse refresh(String refreshToken) {
@@ -72,10 +78,16 @@ public class AuthServiceImpl implements AuthService {
                 });
     }
 
-    private Authentication getAuthentication(AuthRequest loginDTO) {
+    private void setFingerprintCookie(HttpServletResponse response , String fingerprint) {
+        ResponseCookie fingerprintCookie = Utils.buildFingerprintCookie(fingerprint);
+        response.setHeader("Set-Cookie", fingerprintCookie.toString());
+    }
+
+    private Authentication authenticateUser(AuthRequest loginDTO) {
         String cinOrEmail = loginDTO.email() != null ? loginDTO.email() : loginDTO.cin();
-        return Optional.ofNullable(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(cinOrEmail, loginDTO.password())))
-                .orElseThrow(() -> new UserLoginException("Could not log in"));
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(cinOrEmail, loginDTO.password()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return authentication;
     }
 
     @Override

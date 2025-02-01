@@ -23,6 +23,7 @@ public class JwtTokenValidator {
     @Value("${JWT_SECRET}")
     private  String SECRET_KEY;
     private final LoggedOutTokenCache loggedOutTokenCache;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public boolean validateToken(String jwt) {
 
@@ -35,7 +36,6 @@ public class JwtTokenValidator {
         } catch (MalformedJwtException ex) {
             log.error("Invalid JWT token");
             throw new InvalidTokenRequestException("JWT", jwt, "Invalid token");
-
         } catch (ExpiredJwtException ex) {
             log.error("Expired JWT token");
             throw new InvalidTokenRequestException("JWT", jwt, "Token expired. Refresh required");
@@ -49,8 +49,8 @@ public class JwtTokenValidator {
             log.error("Invalid JWT signature");
             throw new InvalidTokenRequestException("JWT", jwt, "Incorrect signature");
         }catch (Exception ex) {
-            log.error("Error validating fingerprint");
-            throw new InvalidTokenRequestException("JWT", jwt, "Fingerprint validation failed");
+            log.error("Error validating token.");
+            throw new InvalidTokenRequestException("JWT", jwt, "Token validation failed");
         }
         validateIsNotForLoggedOutToken(jwt);
         return true;
@@ -63,8 +63,7 @@ public class JwtTokenValidator {
 
     private void validateIsNotForLoggedOutToken(String token) {
         OnUserLogoutSuccessEvent previousLogoutEvent = loggedOutTokenCache.getLogoutEventFromToken(token);
-        log.info("Token is [{}]", loggedOutTokenCache.getLogoutEventFromToken(token));
-        log.info("Token is [{}]", token);
+
         if (previousLogoutEvent != null) {
             Date eventTime = previousLogoutEvent.getEventTime();
             String userCin = previousLogoutEvent.getUserCin();
@@ -72,5 +71,18 @@ public class JwtTokenValidator {
             throw new InvalidTokenRequestException("JWT", token, "Token is already logged out");
         }
     }
+
+    public boolean validateFingerprint(String token , String hashedFingerprint) {
+        String storedFingerprint = jwtTokenProvider.getFingerprintFromToken(token);
+
+        if (!storedFingerprint.equals(hashedFingerprint)) {
+            log.error("Invalid fingerprint");
+            throw new InvalidTokenRequestException("JWT", token, "Invalid fingerprint");
+        }
+        return true;
+    }
+
+
+
 
 }

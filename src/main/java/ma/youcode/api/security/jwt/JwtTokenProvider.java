@@ -25,12 +25,13 @@ public class JwtTokenProvider {
     private long JWT_EXPIRATION;
 
 
-    public String generateToken(UserSecurity userSecurity ) {
+    public String generateToken(UserSecurity userSecurity , String hashFingerprint) {
         Instant expiryDate = Instant.now().plusMillis(JWT_EXPIRATION);
 
         return Jwts.builder()
                 .subject(userSecurity.getCin())
                 .claim("email", userSecurity.getEmail())
+                .claim("userFingerprint" , hashFingerprint)
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(expiryDate))
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
@@ -50,22 +51,7 @@ public class JwtTokenProvider {
         return cin != null ? cin : email;
 
     }
-//    public String getCinFromToken(String token) {
-//        return  Jwts.parser()
-//                .verifyWith(getSigningKey())
-//                .build()
-//                .parseSignedClaims(token)
-//                .getPayload()
-//                .getSubject();
-//    }
-//    public String getEmailFromToken(String token) {
-//        return  Jwts.parser()
-//                .verifyWith(getSigningKey())
-//                .build()
-//                .parseSignedClaims(token)
-//                .getPayload()
-//                .get("email", String.class);
-//    }
+
     public Date getExpirationFromToken(String token) {
         return  Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -85,6 +71,15 @@ public class JwtTokenProvider {
                 .and()
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
+    }
+
+    public String getFingerprintFromToken(String token) {
+        return  Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("userFingerprint", String.class);
     }
 
     public long getExpiration() {
