@@ -1,4 +1,4 @@
-package ma.youcode.api.constants;
+package ma.youcode.api.enums;
 
 public enum UserType {
     ADMIN,

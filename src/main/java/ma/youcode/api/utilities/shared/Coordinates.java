@@ -8,7 +8,7 @@ import org.starter.utilities.markers.validation.OnCreate;
 @Builder
 @Embeddable
 public record Coordinates(
-        @NotNull(groups = OnCreate.class) double longitude,
-        @NotNull(groups = OnCreate.class) double latitude
+        @NotNull(groups = OnCreate.class) double lon,
+        @NotNull(groups = OnCreate.class) double lat
 ) {
 }

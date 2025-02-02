@@ -4,13 +4,10 @@ import org.apache.commons.codec.binary.Hex;
 import org.springframework.boot.web.server.Cookie;
 import org.springframework.http.ResponseCookie;
 
-import java.net.HttpCookie;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 
 public class Utils {
@@ -34,11 +31,10 @@ public class Utils {
 
     public static ResponseCookie buildFingerprintCookie(String value) {
         return ResponseCookie.from("__Secure-Fgp", value)
-                .maxAge(Duration.of(15, ChronoUnit.MINUTES))
                 .path("/")
                 .sameSite(Cookie.SameSite.STRICT.name())
                 .secure(true)
-                .httpOnly(false)
+                .httpOnly(true)
                 .build();
     }
 

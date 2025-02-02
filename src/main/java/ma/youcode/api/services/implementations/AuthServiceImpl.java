@@ -3,7 +3,7 @@ package ma.youcode.api.services.implementations;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import ma.youcode.api.constants.UserType;
+import ma.youcode.api.enums.UserType;
 import ma.youcode.api.exceptions.auth.RefreshTokenException;
 import ma.youcode.api.exceptions.auth.UserLoginException;
 import ma.youcode.api.models.tokens.RefreshToken;
@@ -24,9 +24,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.net.HttpCookie;
-import java.util.Optional;
 
 @Service
 @Transactional

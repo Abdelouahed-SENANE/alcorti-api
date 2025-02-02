@@ -1,6 +1,6 @@
 package ma.youcode.api.utilities.factories;
 
-import ma.youcode.api.constants.UserType;
+import ma.youcode.api.enums.UserType;
 import ma.youcode.api.models.users.Admin;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;

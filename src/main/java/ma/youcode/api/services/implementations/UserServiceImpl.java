@@ -1,15 +1,16 @@
 package ma.youcode.api.services.implementations;
 
 import lombok.RequiredArgsConstructor;
-import ma.youcode.api.annotations.CurrentUser;
-import ma.youcode.api.constants.UserType;
+import ma.youcode.api.annotations.AuthUser;
+import ma.youcode.api.enums.UserType;
+import ma.youcode.api.exceptions.ResourceNotFoundException;
 import ma.youcode.api.models.users.User;
 import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
 import ma.youcode.api.repositories.UserRepository;
-import ma.youcode.api.services.FileStorageService;
 import ma.youcode.api.services.UserService;
+import ma.youcode.api.utilities.FileServiceStorage;
 import ma.youcode.api.utilities.factories.UserFactory;
 import ma.youcode.api.utilities.mappers.UserMapper;
 import org.apache.logging.log4j.LogManager;
@@ -30,7 +31,6 @@ public class UserServiceImpl implements UserService {
     private static final Logger log = LogManager.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final FileStorageService fileStorageService;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
 
@@ -53,18 +53,18 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    @Override
-    public UserResponse update(UUID uuid, UserRequest dto) {
-
-        return findAndExecute(uuid , user -> {
-            userMapper.updateEntity(dto , user);
-            if (dto.picture() != null){
-                user.setPicture(fileStorageService.store(dto.picture()));
-            }
-            return userMapper.toResponseDTO(user);
-        });
-
-    }
+//    @Override
+//    public UserResponse update(UUID uuid, UserRequest dto) {
+//
+//        return findAndExecute(uuid , user -> {
+//            userMapper.updateEntity(dto , user);
+////            if (dto.picture() != null){
+////                user.setPhotoURL(FileServiceStorage.store(dto.picture()));
+////            }
+//            return userMapper.toResponseDTO(user);
+//        });
+//
+//    }
 
     @Override
     public void disableAccount(UUID uuid) {
@@ -75,6 +75,12 @@ public class UserServiceImpl implements UserService {
             user.setActive(false);
             userRepository.save(user);
         });
+    }
+
+    @Override
+    public User findById(UUID uuid) {
+        return userRepository.findById(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found."));
     }
 
     @Override
@@ -94,14 +100,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse readCurrentUser(@CurrentUser UserSecurity user) {
+    public UserResponse readCurrentUser(@AuthUser UserSecurity user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .cin(user.getCin())
-                .picture(user.getPicture())
+                .photoURL(user.getPhotoURL())
                 .role(user.getRole())
                 .build();
     }

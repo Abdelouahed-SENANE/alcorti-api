@@ -1,10 +1,12 @@
 package ma.youcode.api.services;
 
 import jakarta.servlet.http.HttpServletResponse;
-import ma.youcode.api.constants.UserType;
+import ma.youcode.api.enums.UserType;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.AuthRequest;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.JwtResponse;
+import org.springframework.security.core.Authentication;
 
 public interface AuthService {
 
