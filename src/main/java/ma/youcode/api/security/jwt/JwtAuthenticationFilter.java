@@ -24,7 +24,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -32,8 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LogManager.getLogger(JwtAuthenticationFilter.class);
 
-    private @Value("${JWT_HEADER}") String AUTHORIZATION;
-    private @Value("${JWT_PREFIX}") String BEARER;
+    private @Value("${jwt.header}") String AUTHORIZATION;
+    private @Value("${jwt.prefix}") String BEARER;
 
     private final JwtTokenValidator jwtTokenValidator;
     private final JwtTokenProvider jwtTokenProvider;
@@ -84,6 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
+
 
     }
 

@@ -1,12 +1,12 @@
 package ma.youcode.api.controllers;
 
 import lombok.RequiredArgsConstructor;
-import ma.youcode.api.annotations.CurrentUser;
+import ma.youcode.api.annotations.AuthUser;
 import ma.youcode.api.events.OnUserLogoutSuccessEvent;
 import ma.youcode.api.models.users.User;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
-import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.services.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,7 +42,7 @@ public class UserController implements
 
 
     @GetMapping("/me")
-    public ResponseEntity<SimpleSuccessDTO> handleUserProfile(@CurrentUser UserSecurity user) {
+    public ResponseEntity<SimpleSuccessDTO> handleUserProfile(@AuthUser UserSecurity user) {
         return Response.simpleSuccess(200, "User profile", userService.readCurrentUser(user));
     }
     @PutMapping(value = {"/update/{id}/profile"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -68,7 +68,7 @@ public class UserController implements
     }
 
     @PostMapping(value = {"/logout"})
-    public ResponseEntity<SimpleSuccessDTO> handleLogout(@CurrentUser UserSecurity user) {
+    public ResponseEntity<SimpleSuccessDTO> handleLogout(@AuthUser UserSecurity user) {
         userService.logout(user);
         Object credentials = SecurityContextHolder.getContext().getAuthentication().getCredentials();
         OnUserLogoutSuccessEvent logoutSuccessEvent = new OnUserLogoutSuccessEvent(user.getCin() , credentials.toString());

@@ -32,7 +32,7 @@ public record UserRequest
                 @Size(min = 8, message = "Password must be at least 8 characters long", groups = OnCreate.class)
                 String password,
                 @FileGuard(groups = {OnUpdate.class}, maxSize = 2)
-                MultipartFile picture,
+                MultipartFile photo,
                 Coordinates coordinates,
                 @NotBlank(groups = OnCreate.class)
                 @Pattern(regexp = "^(?:\\+?212\\s?|\\(?0\\)?)(\\d{9})$", message = "Invalid phone number format")

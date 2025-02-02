@@ -1,7 +1,7 @@
-package ma.youcode.api.constants;
+package ma.youcode.api.enums;
 
 public enum RoleType {
     ROLE_ADMIN,
     ROLE_DRIVER,
-    ROLE_COSTUMER
+    ROLE_CUSTOMER
 }

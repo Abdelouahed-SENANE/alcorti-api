@@ -1,7 +1,9 @@
 package ma.youcode.api.payloads.requests;
 
-import jakarta.validation.constraints.*;
-import org.starter.utilities.markers.validation.OnCreate;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public record AuthRequest(
 

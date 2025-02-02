@@ -1,9 +1,10 @@
 package ma.youcode.api.models.users;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import ma.youcode.api.constants.RoleType;
+import ma.youcode.api.enums.RoleType;
 import org.starter.utilities.entities.Auditable;
 
 import java.time.LocalDateTime;
@@ -21,32 +22,44 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-public class User extends Auditable{
+public  class User extends Auditable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     @Column(name = "cin", unique = true)
     private String cin;
+
     @Column(name = "first_name")
     private String firstName;
+
     @Column(name = "last_name")
     private String lastName;
+
     @Column(name = "email", unique = true)
     private String email;
+
     @Column(name = "password")
+    @JsonIgnore
     private String password;
-    @Column(name = "picture")
-    private String picture;
+
+    @Column(name = "photo_url")
+    private String photoURL;
+
     @Column(name = "is_active" , nullable = false)
     private Boolean active;
+
     @Column(name = "is_email_verified" , nullable = false)
     private Boolean isEmailVerified;
+
     @Column(name = "logged_at")
     private LocalDateTime loggedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role_name" , insertable = false , updatable = false)
     private RoleType role;
+
 
     public User(User user) {
         this.id = user.getId();
@@ -55,7 +68,7 @@ public class User extends Auditable{
         this.lastName = user.getLastName();
         this.email = user.getEmail();
         this.password = user.getPassword();
-        this.picture = user.getPicture();
+        this.photoURL = user.getPhotoURL();
         this.active = user.getActive();
         this.isEmailVerified = user.getIsEmailVerified();
         this.loggedAt = user.getLoggedAt();
