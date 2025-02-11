@@ -15,12 +15,11 @@ public record UserResponse(
         String firstName,
         String lastName,
         String email,
-        String password,
         String photoURL,
         Coordinates coordinates,
         String phoneNumber,
-        Boolean isAccountNonLocked,
-        Boolean isEmailVerified,
+        Boolean active,
+        Boolean emailVerified,
         RoleType role
 ) {
 }

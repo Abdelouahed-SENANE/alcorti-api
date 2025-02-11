@@ -1,15 +1,14 @@
 package ma.youcode.api.payloads.requests;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import ma.youcode.api.annotations.validation.FileGuard;
 import ma.youcode.api.utilities.shared.Dimensions;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.web.multipart.MultipartFile;
 import org.starter.utilities.markers.validation.OnCreate;
+import org.starter.utilities.markers.validation.OnUpdate;
 
 @Builder
 public record ArticleRequest(
@@ -19,9 +18,7 @@ public record ArticleRequest(
         String name,
         @Valid
         Dimensions dimensions,
-
-        @NotNull
-        @FileGuard(groups = {OnCreate.class}, maxSize = 2)
+        @FileGuard(groups = {OnCreate.class , OnUpdate.class}, maxSize = 2)
         @Valid
         MultipartFile image
 

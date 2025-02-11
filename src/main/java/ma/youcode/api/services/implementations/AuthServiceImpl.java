@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import ma.youcode.api.enums.UserType;
 import ma.youcode.api.exceptions.auth.RefreshTokenException;
-import ma.youcode.api.exceptions.auth.UserLoginException;
 import ma.youcode.api.models.tokens.RefreshToken;
 import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.AuthRequest;

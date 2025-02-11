@@ -23,24 +23,29 @@ public class FileGuardValidator implements ConstraintValidator<FileGuard, Multip
     public boolean isValid(MultipartFile image, ConstraintValidatorContext context) {
 
         if (image == null || image.isEmpty()) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate("Cannot store empty file.").addConstraintViolation();
+            String errMessage = "File is required!";
+            addViolation(context, errMessage);
             return false;
         }
         String contentType = image.getContentType();
 
         if (!allowedTypes.contains(contentType)) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate("Invalid file type. Allowed types: " + String.join(", ", allowedTypes)).addConstraintViolation();
+            String errMessage = "Invalid file format. Allowed formats: " + String.join(", ", allowedTypes);
+            addViolation(context, errMessage);
             return false;
         }
 
         if (image.getSize() > maxSize) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate("File size exceeds the maximum limit of " + (maxSize / (1024 * 1024)) + " MB.").addConstraintViolation();
+            String errMessage = "File size exceeds the maximum allowed size of " + maxSize / (1024 * 1024) + "MB";
+            addViolation(context, errMessage);
             return false;
         }
 
         return true;
+    }
+
+    private void addViolation(ConstraintValidatorContext context, String message) {
+        context.disableDefaultConstraintViolation();
+        context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
     }
 }

@@ -75,4 +75,9 @@ public class Post extends Auditable {
         articles.add(article);
     }
 
+    public void removeArticle(Article article) {
+        article.setPost(null);
+        articles.remove(article);
+    }
+
 }

@@ -1,6 +1,7 @@
 package ma.youcode.api.payloads.responses;
 
 import ma.youcode.api.enums.PostStatus;
+import ma.youcode.api.payloads.embedded.CustomerEmbedded;
 import ma.youcode.api.utilities.shared.Coordinates;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,6 @@ public record PostResponse(
     LocalDateTime endTime,
     PostStatus postStatus,
     Set<ArticleResponse> articles,
-    UserResponse customer
+    CustomerEmbedded customer
 ) {
 }

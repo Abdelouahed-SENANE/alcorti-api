@@ -1,8 +1,8 @@
 package ma.youcode.api.services;
 
 import ma.youcode.api.enums.UserType;
-import ma.youcode.api.models.users.User;
 import ma.youcode.api.models.users.UserSecurity;
+import ma.youcode.api.models.users.User;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
 import org.starter.utilities.services.CrudService;

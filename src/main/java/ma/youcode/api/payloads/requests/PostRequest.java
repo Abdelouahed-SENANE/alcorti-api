@@ -5,14 +5,11 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Value;
 import ma.youcode.api.utilities.shared.Coordinates;
 import org.starter.utilities.markers.validation.OnCreate;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 @Builder
 public record PostRequest(

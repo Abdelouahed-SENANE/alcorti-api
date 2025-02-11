@@ -1,6 +1,5 @@
 package ma.youcode.api.models.users;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -41,7 +40,6 @@ public  class User extends Auditable{
     private String email;
 
     @Column(name = "password")
-    @JsonIgnore
     private String password;
 
     @Column(name = "photo_url")

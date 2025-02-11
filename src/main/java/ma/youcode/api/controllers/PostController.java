@@ -1,30 +1,17 @@
 package ma.youcode.api.controllers;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import ma.youcode.api.annotations.AuthUser;
-import ma.youcode.api.models.Post;
-import ma.youcode.api.models.users.Customer;
-import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.PostRequest;
 import ma.youcode.api.payloads.responses.PostResponse;
 import ma.youcode.api.services.PostService;
-import org.springframework.http.MediaType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.starter.utilities.controllers.CrudController;
-import org.starter.utilities.controllers.DeleteController;
-import org.starter.utilities.controllers.ReadAllController;
-import org.starter.utilities.controllers.ReadController;
+import org.springframework.web.bind.annotation.*;
 import org.starter.utilities.dtos.SimpleSuccessDTO;
 import org.starter.utilities.markers.validation.OnCreate;
-import org.starter.utilities.services.CrudService;
+import org.starter.utilities.markers.validation.OnUpdate;
 
 import java.util.UUID;
 
@@ -34,30 +21,52 @@ import static org.starter.utilities.response.Response.simpleSuccess;
 @RequestMapping("api/v1/posts")
 @RequiredArgsConstructor
 @Validated
-public class PostController implements
-        ReadController<PostResponse, PostRequest, Post,UUID>,
-        ReadAllController<PostResponse, PostRequest, Post,UUID>,
-        DeleteController<PostResponse, PostRequest, Post,UUID>
-
-{
+public class PostController {
 
     private final PostService postService;
+    private static  final String DEFAULT_PAGE = "0";
+    private static  final String DEFAULT_SIZE = "10";
 
 
-    @PostMapping("/customer")
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<SimpleSuccessDTO> handleAllPosts(@RequestParam(value = "page", defaultValue = DEFAULT_PAGE) int page, @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size) {
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        return simpleSuccess(200, "Posts fetched successfully.", postService.readAll(pageable));
+    }
+
+    @GetMapping("/all/customer")
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<SimpleSuccessDTO> handleCreate(@ModelAttribute @Validated({OnCreate.class}) PostRequest request , @AuthUser UserSecurity authUser ) {
-        PostResponse response = postService.create(authUser , request);
+    public ResponseEntity<SimpleSuccessDTO> getAllPostsForCustomer(@RequestParam(value = "page", defaultValue = DEFAULT_PAGE) int page, @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size) {
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        return simpleSuccess(200, "Posts fetched successfully.", postService.loadCustomerPosts(pageable));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SimpleSuccessDTO> handleRead(@PathVariable UUID id) {
+        return simpleSuccess(200, "Post fetched successfully.", postService.readById(id));
+    }
+
+    @PostMapping("/new")
+    @PreAuthorize("hasRole('ROLE_CUSTOMER')")
+    public ResponseEntity<SimpleSuccessDTO> handleCreate(@ModelAttribute @Validated({OnCreate.class}) PostRequest request) {
+        PostResponse response = postService.create(request);
         return simpleSuccess(201, "Post created successfully.", response);
     }
 
-    @Override
-    public CrudService<PostResponse, PostRequest, Post, UUID> getService() {
-        return postService;
+    @PutMapping("/update/{postId}")
+    @PreAuthorize("hasRole('ROLE_CUSTOMER')")
+    public ResponseEntity<SimpleSuccessDTO> handleUpdate(@ModelAttribute @Validated({OnUpdate.class}) PostRequest request, @PathVariable UUID postId) {
+        PostResponse response = postService.update(postId, request);
+        return simpleSuccess(201, "Post updated successfully.", response);
     }
 
-    @Override
-    public Class<Post> getEntityClass() {
-        return Post.class;
+    @DeleteMapping("/delete/{postId}")
+    @PreAuthorize("hasRole('ROLE_CUSTOMER')")
+    public ResponseEntity<SimpleSuccessDTO> handleDelete(@PathVariable UUID postId) {
+        postService.delete(postId);
+        return simpleSuccess(201, "Post deleted successfully.");
     }
+
+
 }

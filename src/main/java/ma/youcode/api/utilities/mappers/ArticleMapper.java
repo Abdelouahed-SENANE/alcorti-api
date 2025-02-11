@@ -4,6 +4,7 @@ import ma.youcode.api.models.Article;
 import ma.youcode.api.payloads.requests.ArticleRequest;
 import ma.youcode.api.payloads.responses.ArticleResponse;
 import ma.youcode.api.utilities.FileServiceStorage;
+import ma.youcode.api.utilities.shared.Dimensions;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -14,11 +15,20 @@ import org.starter.utilities.mappers.GenericMapper;
 public interface ArticleMapper extends GenericMapper<Article, ArticleResponse, ArticleRequest> {
 
     @Override
-    @Mapping(target = "imageURL", source = "image" , qualifiedByName = "uploadImageIsExists")
+    @Mapping(target = "imageURL", source = "image" , qualifiedByName = "uploadImage")
+    @Mapping(target = "volume", source = "dimensions", qualifiedByName = "calculateVolume")
     Article fromRequestDTO(ArticleRequest dto);
 
-    @Named("uploadImageIsExists")
-    default String uploadImageIsExists(MultipartFile imageFile) {
+    @Named("calculateVolume")
+    default Double calculateVolume(Dimensions dimensions) {
+        if (dimensions == null) {
+            return 0.0;
+        }
+        return dimensions.length() * dimensions.width() * dimensions.height();
+    }
+
+    @Named("uploadImage")
+    default String uploadImageIfExists(MultipartFile imageFile) {
         if (imageFile == null || imageFile.isEmpty()) {
             return null;
         }
