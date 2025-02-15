@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import ma.youcode.api.models.Post;
+import ma.youcode.api.models.Shipment;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -26,7 +26,7 @@ public class Customer extends User {
     private String phoneNumber;
 
     @OneToMany(mappedBy = "customer" , cascade = CascadeType.ALL , orphanRemoval = true)
-    private Set<Post> posts = new HashSet<>();
+    private Set<Shipment> shipments = new HashSet<>();
 
 
 }

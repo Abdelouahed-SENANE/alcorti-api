@@ -10,6 +10,4 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends GenericRepository<User, UUID> {
     Optional<User> findByCinOrEmail(String cin , String email);
-
-    String cin(String cin);
 }

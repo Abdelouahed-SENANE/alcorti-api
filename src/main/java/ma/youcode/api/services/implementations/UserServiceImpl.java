@@ -1,6 +1,7 @@
 package ma.youcode.api.services.implementations;
 
 import lombok.RequiredArgsConstructor;
+import ma.youcode.api.annotations.AuthUser;
 import ma.youcode.api.enums.UserType;
 import ma.youcode.api.exceptions.ResourceNotFoundException;
 import ma.youcode.api.models.users.UserSecurity;
@@ -94,7 +95,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse readCurrentUser(@ma.youcode.api.annotations.AuthUser UserSecurity user) {
+    public UserResponse readCurrentUser(@AuthUser UserSecurity user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
