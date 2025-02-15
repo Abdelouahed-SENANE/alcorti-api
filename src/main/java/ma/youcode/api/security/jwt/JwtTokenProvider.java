@@ -25,7 +25,7 @@ public class JwtTokenProvider {
     private long JWT_EXPIRATION;
 
 
-    public String generateToken(UserSecurity userSecurity , String hashFingerprint) {
+    public String generateToken(UserSecurity userSecurity, String hashFingerprint) {
         Instant expiryDate = Instant.now().plusMillis(JWT_EXPIRATION);
 
         return Jwts.builder()

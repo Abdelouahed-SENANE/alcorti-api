@@ -1,9 +1,6 @@
 package ma.youcode.api.utilities.mappers;
 
 
-import ma.youcode.api.models.users.Admin;
-import ma.youcode.api.models.users.Customer;
-import ma.youcode.api.models.users.Driver;
 import ma.youcode.api.models.users.User;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.UserResponse;

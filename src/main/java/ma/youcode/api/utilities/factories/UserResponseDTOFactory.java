@@ -17,8 +17,8 @@ public interface UserResponseDTOFactory {
                     .email(admin.getEmail())
                     .cin(admin.getCin())
                     .photoURL(admin.getPhotoURL())
-                    .isAccountNonLocked(admin.getActive())
-                    .isEmailVerified(admin.getIsEmailVerified())
+                    .active(admin.getActive())
+                    .emailVerified(admin.getIsEmailVerified())
                     .role(admin.getRole())
                     .build();
         } else if (user instanceof Customer customer) {
@@ -29,9 +29,9 @@ public interface UserResponseDTOFactory {
                     .email(customer.getEmail())
                     .cin(customer.getCin())
                     .photoURL(customer.getPhotoURL())
-                    .isAccountNonLocked(customer.getActive())
+                    .active(customer.getActive())
                     .phoneNumber(customer.getPhoneNumber())
-                    .isEmailVerified(customer.getIsEmailVerified())
+                    .emailVerified(customer.getIsEmailVerified())
                     .role(customer.getRole())
                     .build();
         } else if (user instanceof Driver driver) {
@@ -41,9 +41,9 @@ public interface UserResponseDTOFactory {
                     .lastName(driver.getLastName())
                     .email(driver.getEmail())
                     .photoURL(driver.getPhotoURL())
-                    .isAccountNonLocked(driver.getActive())
+                    .active(driver.getActive())
                     .phoneNumber(driver.getPhoneNumber())
-                    .isEmailVerified(driver.getIsEmailVerified())
+                    .emailVerified(driver.getIsEmailVerified())
                     .role(driver.getRole())
                     .photoURL(driver.getPhotoURL())
                     .coordinates(driver.getCoordinates())
