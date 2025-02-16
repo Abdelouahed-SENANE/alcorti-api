@@ -1,6 +1,7 @@
 package ma.youcode.api.controllers;
 
 import lombok.RequiredArgsConstructor;
+import ma.youcode.api.annotations.AuthUser;
 import ma.youcode.api.events.OnUserLogoutSuccessEvent;
 import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.models.users.User;
@@ -16,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.starter.utilities.controllers.DeleteController;
 import org.starter.utilities.controllers.ReadAllController;
 import org.starter.utilities.controllers.ReadController;
@@ -42,20 +44,24 @@ public class UserController implements
 
 
     @GetMapping("/me")
-    public ResponseEntity<SimpleSuccessDTO> handleUserProfile(@ma.youcode.api.annotations.AuthUser UserSecurity user) {
+    public ResponseEntity<SimpleSuccessDTO> userProfile(@AuthUser UserSecurity user) {
         return Response.simpleSuccess(200, "User profile", userService.readCurrentUser(user));
     }
+
+
     @PutMapping(value = {"/profile"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SimpleSuccessDTO> handleUpdateUser(
-                                                             @ModelAttribute @Validated({OnUpdate.class}) UserRequest request , @ma.youcode.api.annotations.AuthUser UserSecurity userSecurity
+            @ModelAttribute @Validated({OnUpdate.class}) UserRequest request
+            ,@AuthUser UserSecurity userSecurity
     ) {
+        userService.updatePhoto(userSecurity.getId(), request.photo());
         UserResponse responseDTO = userService.update(userSecurity.getId(), request);
-        return Response.simpleSuccess(200, "Customer updated successfully.", responseDTO);
+        return Response.simpleSuccess(200, "User updated successfully.", responseDTO);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PatchMapping(value = {"/{id}/disable"})
-    public ResponseEntity<SimpleSuccessDTO> handleDisableAccount(@PathVariable UUID id
+    public ResponseEntity<SimpleSuccessDTO> disableAccount(@PathVariable UUID id
     ) {
         userService.disableAccount(id);
         return Response.simpleSuccess(200, "Account locked successfully.");
@@ -63,7 +69,7 @@ public class UserController implements
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PatchMapping(value = {"/{id}/enable"})
-    public ResponseEntity<SimpleSuccessDTO> handleEnableAccount(@PathVariable UUID id
+    public ResponseEntity<SimpleSuccessDTO> enableAccount(@PathVariable UUID id
     ) {
          userService.enableAccount(id);
         return Response.simpleSuccess(200, "Account unlocked successfully.");
@@ -71,7 +77,7 @@ public class UserController implements
 
 
     @PostMapping(value = {"/logout"})
-    public ResponseEntity<SimpleSuccessDTO> handleLogout(@ma.youcode.api.annotations.AuthUser UserSecurity user) {
+    public ResponseEntity<SimpleSuccessDTO> logout(@ma.youcode.api.annotations.AuthUser UserSecurity user) {
         userService.logout(user);
         Object credentials = SecurityContextHolder.getContext().getAuthentication().getCredentials();
         OnUserLogoutSuccessEvent logoutSuccessEvent = new OnUserLogoutSuccessEvent(user.getCin() , credentials.toString());

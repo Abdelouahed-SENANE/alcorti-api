@@ -30,40 +30,40 @@ public class ShipmentController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<SimpleSuccessDTO> handleAllPosts(@RequestParam(value = "page", defaultValue = DEFAULT_PAGE) int page, @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size) {
+    public ResponseEntity<SimpleSuccessDTO> readAllShipments(@RequestParam(value = "page", defaultValue = DEFAULT_PAGE) int page, @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size) {
         Pageable pageable = Pageable.ofSize(size).withPage(page);
         return simpleSuccess(200, "Shipments fetched successfully.", postService.readAll(pageable));
     }
 
     @GetMapping("/all/customer")
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<SimpleSuccessDTO> getAllPostsForCustomer(@RequestParam(value = "page", defaultValue = DEFAULT_PAGE) int page, @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size) {
+    public ResponseEntity<SimpleSuccessDTO> readAllShipmentsForCustomer(@RequestParam(value = "page", defaultValue = DEFAULT_PAGE) int page, @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size) {
         Pageable pageable = Pageable.ofSize(size).withPage(page);
         return simpleSuccess(200, "Shipments fetched successfully.", postService.loadCustomerShipments(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SimpleSuccessDTO> handleRead(@PathVariable UUID id) {
+    public ResponseEntity<SimpleSuccessDTO> readShipmentById(@PathVariable UUID id) {
         return simpleSuccess(200, "Shipments fetched successfully.", postService.readById(id));
     }
 
     @PostMapping("/new")
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<SimpleSuccessDTO> handleCreate(@ModelAttribute @Validated({OnCreate.class}) ShipmentRequest request) {
+    public ResponseEntity<SimpleSuccessDTO> createShipment(@ModelAttribute @Validated({OnCreate.class}) ShipmentRequest request) {
         ShipmentResponse response = postService.create(request);
         return simpleSuccess(201, "Shipment created successfully.", response);
     }
 
     @PutMapping("/update/{postId}")
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<SimpleSuccessDTO> handleUpdate(@ModelAttribute @Validated({OnUpdate.class}) ShipmentRequest request, @PathVariable UUID postId) {
+    public ResponseEntity<SimpleSuccessDTO> updateShipment(@ModelAttribute @Validated({OnUpdate.class}) ShipmentRequest request, @PathVariable UUID postId) {
         ShipmentResponse response = postService.update(postId, request);
         return simpleSuccess(201, "Shipment updated successfully.", response);
     }
 
     @DeleteMapping("/delete/{postId}")
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<SimpleSuccessDTO> handleDelete(@PathVariable UUID postId) {
+    public ResponseEntity<SimpleSuccessDTO> deleteShipment(@PathVariable UUID postId) {
         postService.delete(postId);
         return simpleSuccess(201, "Shipment deleted successfully.");
     }

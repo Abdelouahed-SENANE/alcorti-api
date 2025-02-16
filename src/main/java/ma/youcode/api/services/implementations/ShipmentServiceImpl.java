@@ -14,6 +14,7 @@ import ma.youcode.api.payloads.requests.ShipmentRequest;
 import ma.youcode.api.payloads.responses.ShipmentResponse;
 import ma.youcode.api.repositories.ShipmentItemRepository;
 import ma.youcode.api.repositories.ShipmentRepository;
+import ma.youcode.api.services.ImageService;
 import ma.youcode.api.services.ShipmentService;
 import ma.youcode.api.services.UserService;
 import ma.youcode.api.utilities.PricingCalculator;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.starter.utilities.mappers.GenericMapper;
 import org.starter.utilities.repositories.GenericRepository;
 
@@ -40,9 +42,8 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     private static final Logger log = LogManager.getLogger(ShipmentServiceImpl.class);
     private final ShipmentRepository shipmentRepository;
-    private final ShipmentItemRepository shipmentItemRepository;
+    private final ImageService imageService;
     private final ShipmentMapper shipmentMapper;
-    private final ShipmentItemMapper shipmentItemMapper;
     private final UserService userService;
 
     @Override
@@ -65,25 +66,22 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         shipment.setCustomer((Customer) customer);
         shipment.setShipmentStatus(ShipmentStatus.PENDING);
-        shipment.setDistance(calculateDistance(request.departure(), request.arrival()));
+        attachItems(shipment);
 
+        calculateDistance(shipment);
         calculateShipmentPrice(shipment);
         return shipmentMapper.toResponseDTO(shipmentRepository.save(shipment));
     }
 
     @Override
+    @Transactional
     public ShipmentResponse update(UUID shipmentId, ShipmentRequest request) {
         return findAndExecute(shipmentId, shipment -> {
             verifyAccess(shipment, "update");
+            detachItems(shipment);
             shipmentMapper.updateEntity(request, shipment);
-            Set<ShipmentItem> itemsToUpdate = identifyItemsToUpdate(shipment, request);
-            Set<ShipmentItem> itemsToDelete = identifyItemsToDelete(shipment, request);
-            Set<ShipmentItem> itemsToAdd = identifyItemsToAdd(request);
-
-            updateItems(shipment, itemsToUpdate, request);
-            deleteItems(shipment, itemsToDelete);
-            addNewItems(shipment, itemsToAdd);
-
+            attachItems(shipment);
+            calculateDistance(shipment);
             calculateShipmentPrice(shipment);
             return shipmentMapper.toResponseDTO(shipmentRepository.save(shipment));
         });
@@ -105,69 +103,37 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
 
-    // Helper Methods
-    private Set<UUID> extractItemIdsFromRequest(ShipmentRequest request) {
-        return request.shipmentItems().stream()
-                .map(ShipmentItemRequest::shipmentItemId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-    }
-    private Set<ShipmentItem> identifyItemsToUpdate(Shipment shipment, ShipmentRequest request) {
-
-        Set<UUID> requestedItemIds = extractItemIdsFromRequest(request);
-        return shipment.getShipmentItems().stream()
-                .filter(item -> requestedItemIds.contains(item.getShipmentItemId()))
-                .collect(Collectors.toSet());
+    private void detachItems(Shipment shipment) {
+        shipment.getShipmentItems().forEach(item -> {
+            log.info("Image URL {}", item.getImageURL());
+            imageService.delete(item.getImageURL());
+        });
+        shipment.getShipmentItems().removeAll(shipment.getShipmentItems());
     }
 
-    private Set<ShipmentItem> identifyItemsToDelete(Shipment shipment, ShipmentRequest request) {
-        Set<UUID> requestedItemIds = extractItemIdsFromRequest(request);
-        return shipment.getShipmentItems().stream()
-                .filter(item -> !requestedItemIds.contains(item.getShipmentItemId()))
-                .collect(Collectors.toSet());
+
+    private void calculateShipmentPrice(Shipment shipment) {
+        double totalVolume = calculateTotalVolume(shipment);
+        shipment.setPrice(PricingCalculator.calculatePrice(totalVolume, shipment.getDistance()));
     }
 
-    private Set<ShipmentItem> identifyItemsToAdd(ShipmentRequest request) {
-        return request.shipmentItems().stream()
-                .filter(dto -> dto.shipmentItemId() == null)
-                .map(shipmentItemMapper::fromRequestDTO)
-                .collect(Collectors.toSet());
-    }
-
-    private void updateItems(Shipment shipment, Set<ShipmentItem> itemsToUpdate, ShipmentRequest request) {
-        itemsToUpdate.forEach(item -> {
-            ShipmentItemRequest updateRequest = request.shipmentItems().stream()
-                    .filter(dto -> dto.shipmentItemId().equals(item.getShipmentItemId()))
-                    .findFirst()
-                    .orElse(null);
-
-            shipmentItemMapper.updateEntity(updateRequest, item);
+    private void attachItems(Shipment shipment) {
+        shipment.getShipmentItems().forEach(item -> {
             item.setShipment(shipment);
+            item.setImageURL(imageService.uploadImage(item.getImage()));
+            item.calculateVolume();
         });
     }
 
-    private void deleteItems(Shipment shipment, Set<ShipmentItem> itemsToDelete) {
-        shipment.getShipmentItems().removeAll(itemsToDelete);
-        itemsToDelete.forEach(item -> item.setShipment(null));
-    }
-
-    private void addNewItems(Shipment shipment, Set<ShipmentItem> itemsToAdd) {
-        shipment.getShipmentItems().addAll(itemsToAdd);
-        itemsToAdd.forEach(item ->item.setShipment(shipment));
-    }
-
-    private void calculateShipmentPrice(Shipment shipment) {
-        double totalVolume = shipment.getShipmentItems().stream()
+    private double calculateTotalVolume(Shipment shipment ) {
+        return shipment.getShipmentItems().stream()
                 .mapToDouble(shipmentItem -> {
                     shipmentItem.calculateVolume();
                     shipmentItem.setShipment(shipment);
                     return shipmentItem.getVolume();
                 })
                 .sum();
-
-        shipment.setPrice(PricingCalculator.calculatePrice(totalVolume, shipment.getDistance()));
     }
-
 
     private UserSecurity getAuthUser() {
         return (UserSecurity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -183,14 +149,14 @@ public class ShipmentServiceImpl implements ShipmentService {
         }
     }
 
-    private double calculateDistance(Coordinates departure, Coordinates arrival) {
+    private void calculateDistance(Shipment shipment) {
         final int R = 6371;
-        double latDistance = Math.toRadians(arrival.lat() - departure.lat());
-        double lonDistance = Math.toRadians(arrival.lon() - departure.lon());
+        double latDistance = Math.toRadians(shipment.getArrival().lat() - shipment.getDeparture().lat());
+        double lonDistance = Math.toRadians(shipment.getArrival().lon() - shipment.getDeparture().lon());
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(departure.lat())) * Math.cos(Math.toRadians(arrival.lat()))
+                + Math.cos(Math.toRadians( shipment.getDeparture().lat())) * Math.cos(Math.toRadians(shipment.getArrival().lat()))
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+        shipment.setDistance(R * c);
     }
 }

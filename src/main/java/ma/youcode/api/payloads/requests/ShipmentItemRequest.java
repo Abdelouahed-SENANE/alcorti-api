@@ -23,7 +23,8 @@ public record ShipmentItemRequest(
         Dimensions dimensions,
         @FileGuard(groups = {OnCreate.class , OnUpdate.class}, maxSize = 2)
         @Valid
-        MultipartFile image
+        MultipartFile image,
+        String imageURL
 
 ) {
 }
