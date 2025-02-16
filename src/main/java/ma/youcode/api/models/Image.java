@@ -2,7 +2,6 @@ package ma.youcode.api.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-import ma.youcode.api.models.users.User;
 
 import java.util.UUID;
 

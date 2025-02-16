@@ -4,12 +4,10 @@ import lombok.RequiredArgsConstructor;
 import ma.youcode.api.annotations.AuthUser;
 import ma.youcode.api.enums.UserType;
 import ma.youcode.api.exceptions.ResourceNotFoundException;
-import ma.youcode.api.models.Image;
-import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.models.users.User;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
-import ma.youcode.api.repositories.ImageRepository;
 import ma.youcode.api.repositories.UserRepository;
 import ma.youcode.api.services.ImageService;
 import ma.youcode.api.services.UserService;
@@ -24,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.starter.utilities.mappers.GenericMapper;
 import org.starter.utilities.repositories.GenericRepository;
 
-import java.io.IOException;
 import java.util.UUID;
 
 @Service

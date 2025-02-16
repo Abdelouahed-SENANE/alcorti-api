@@ -3,7 +3,6 @@ package ma.youcode.api.payloads.responses;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import ma.youcode.api.enums.RoleType;
-import ma.youcode.api.models.Image;
 import ma.youcode.api.utilities.shared.Coordinates;
 
 import java.util.UUID;

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import ma.youcode.api.payloads.requests.ShipmentRequest;
 import ma.youcode.api.payloads.responses.ShipmentResponse;
 import ma.youcode.api.services.ShipmentService;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +28,6 @@ public class ShipmentController {
     private final ShipmentService postService;
     private static  final String DEFAULT_PAGE = "0";
     private static  final String DEFAULT_SIZE = "10";
-
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -61,10 +62,10 @@ public class ShipmentController {
         return simpleSuccess(201, "Shipment updated successfully.", response);
     }
 
-    @DeleteMapping("/delete/{postId}")
+    @DeleteMapping("/delete/{shipmentId}")
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<SimpleSuccessDTO> deleteShipment(@PathVariable UUID postId) {
-        postService.delete(postId);
+    public ResponseEntity<SimpleSuccessDTO> deleteShipment(@PathVariable UUID shipmentId) {
+        postService.delete(shipmentId);
         return simpleSuccess(201, "Shipment deleted successfully.");
     }
 

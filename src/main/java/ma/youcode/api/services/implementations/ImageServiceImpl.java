@@ -1,6 +1,7 @@
 package ma.youcode.api.services.implementations;
 
 import lombok.RequiredArgsConstructor;
+import ma.youcode.api.events.OnShipmentDeletedSuccessEvent;
 import ma.youcode.api.exceptions.ResourceNotFoundException;
 import ma.youcode.api.exceptions.UploadImageException;
 import ma.youcode.api.models.Image;
@@ -9,6 +10,8 @@ import ma.youcode.api.services.ImageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -48,6 +51,13 @@ public class ImageServiceImpl implements ImageService {
     public void delete(String url) {
         UUID uuid = extractImageIdFromUrl(url);
         imageRepository.findById(uuid).ifPresent(imageRepository::delete);
+    }
+
+    @EventListener
+    public void onShipmentDeletedSuccess(OnShipmentDeletedSuccessEvent event) {
+        event.getShipment().getShipmentItems().forEach(item -> {
+            delete(item.getImageURL());
+        });
     }
 
     private String extractExtension(String fileName) {

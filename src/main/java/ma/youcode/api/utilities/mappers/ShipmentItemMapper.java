@@ -3,11 +3,11 @@ package ma.youcode.api.utilities.mappers;
 import ma.youcode.api.models.ShipmentItem;
 import ma.youcode.api.payloads.requests.ShipmentItemRequest;
 import ma.youcode.api.payloads.responses.ShipmentItemResponse;
-import org.mapstruct.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.starter.utilities.mappers.GenericMapper;
-
-import java.io.IOException;
 
 @Mapper(componentModel = "spring")
 public interface ShipmentItemMapper extends GenericMapper<ShipmentItem, ShipmentItemResponse, ShipmentItemRequest> {

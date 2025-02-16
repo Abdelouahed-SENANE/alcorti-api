@@ -4,9 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import ma.youcode.api.enums.RoleType;
-import ma.youcode.api.enums.UserType;
-import ma.youcode.api.models.Image;
-import org.hibernate.annotations.Type;
 import org.starter.utilities.entities.Auditable;
 
 import java.time.LocalDateTime;

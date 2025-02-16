@@ -2,27 +2,24 @@ package ma.youcode.api.services.implementations;
 
 import lombok.RequiredArgsConstructor;
 import ma.youcode.api.enums.ShipmentStatus;
-import ma.youcode.api.exceptions.ResourceNotFoundException;
-import ma.youcode.api.exceptions.ShipmentAccessDeniedException;
+import ma.youcode.api.events.OnShipmentDeletedSuccessEvent;
+import ma.youcode.api.exceptions.InvalidShipmentStateException;
+import ma.youcode.api.exceptions.UnauthorizedShipmentAccessException;
 import ma.youcode.api.models.Shipment;
-import ma.youcode.api.models.ShipmentItem;
-import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.User;
-import ma.youcode.api.payloads.requests.ShipmentItemRequest;
+import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.ShipmentRequest;
 import ma.youcode.api.payloads.responses.ShipmentResponse;
-import ma.youcode.api.repositories.ShipmentItemRepository;
 import ma.youcode.api.repositories.ShipmentRepository;
 import ma.youcode.api.services.ImageService;
 import ma.youcode.api.services.ShipmentService;
 import ma.youcode.api.services.UserService;
 import ma.youcode.api.utilities.PricingCalculator;
-import ma.youcode.api.utilities.mappers.ShipmentItemMapper;
 import ma.youcode.api.utilities.mappers.ShipmentMapper;
-import ma.youcode.api.utilities.shared.Coordinates;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,9 +29,7 @@ import org.starter.utilities.mappers.GenericMapper;
 import org.starter.utilities.repositories.GenericRepository;
 
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +40,8 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final ImageService imageService;
     private final ShipmentMapper shipmentMapper;
     private final UserService userService;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     @Override
     public GenericRepository<Shipment, UUID> getRepository() {
@@ -92,6 +89,8 @@ public class ShipmentServiceImpl implements ShipmentService {
         findAndExecute(shipmentId, shipment -> {
             verifyAccess(shipment, "delete");
             shipmentRepository.delete(shipment);
+            OnShipmentDeletedSuccessEvent event = new OnShipmentDeletedSuccessEvent(this, shipment);
+            eventPublisher.publishEvent(event);
         });
     }
 
@@ -145,8 +144,15 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     private void verifyAccess(Shipment shipment, String action) {
         if (!isShipmentOwner(shipment)) {
-            throw new ShipmentAccessDeniedException(String.format("You don't have permission to %s this post", action));
+            throw new UnauthorizedShipmentAccessException(String.format("You don't have permission to %s this shipment", action));
         }
+        if (!isShipmentPending(shipment)) {
+            throw new InvalidShipmentStateException(String.format("You can't %s this shipment", action));
+        }
+    }
+
+    private boolean isShipmentPending(Shipment shipment) {
+        return shipment.getShipmentStatus().equals(ShipmentStatus.PENDING);
     }
 
     private void calculateDistance(Shipment shipment) {

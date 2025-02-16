@@ -5,8 +5,10 @@ import ma.youcode.api.models.users.User;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
 import ma.youcode.api.utilities.factories.UserResponseDTOFactory;
-import org.mapstruct.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.starter.utilities.mappers.GenericMapper;
 
 @Mapper(componentModel = "spring")

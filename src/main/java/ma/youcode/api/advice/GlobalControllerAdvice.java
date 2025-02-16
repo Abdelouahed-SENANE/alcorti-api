@@ -1,7 +1,8 @@
 package ma.youcode.api.advice;
 
+import ma.youcode.api.exceptions.InvalidShipmentStateException;
+import ma.youcode.api.exceptions.UnauthorizedShipmentAccessException;
 import ma.youcode.api.exceptions.UploadImageException;
-import ma.youcode.api.exceptions.auth.RefreshTokenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,4 +21,17 @@ public class GlobalControllerAdvice extends AbstractGlobalExceptionHandler {
     public ResponseEntity<ErrorDTO> handleUploadImageException(UploadImageException e) {
         return error(HttpStatus.BAD_REQUEST.value() , e.getMessage());
     }
+
+    @ExceptionHandler(InvalidShipmentStateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorDTO> handleInvalidShipmentStateException(InvalidShipmentStateException e) {
+        return error(HttpStatus.BAD_REQUEST.value() , e.getMessage());
+    }
+
+    @ExceptionHandler(UnauthorizedShipmentAccessException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<ErrorDTO> handleUnauthorizedShipmentAccessException(InvalidShipmentStateException e) {
+        return error(HttpStatus.FORBIDDEN.value() , e.getMessage());
+    }
+
 }
