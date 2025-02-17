@@ -1,5 +1,6 @@
 package ma.youcode.api.payloads.requests;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -12,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.starter.utilities.annotations.validation.Unique;
 import org.starter.utilities.markers.validation.OnCreate;
 import org.starter.utilities.markers.validation.OnUpdate;
+
+import java.util.List;
 
 @Builder
 public record UserRequest
@@ -36,6 +39,7 @@ public record UserRequest
                 Coordinates coordinates,
                 @NotBlank(groups = OnCreate.class)
                 @Pattern(regexp = "^(?:\\+?212\\s?|\\(?0\\)?)(\\d{9})$", message = "Invalid phone number format")
-                String phoneNumber
+                String phoneNumber,
+                List<@Valid VehicleOfDriverRequest> vehicles
         ) {
 }

@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import ma.youcode.api.models.Shipment;
+import ma.youcode.api.models.shipments.Shipment;
 
 import java.util.HashSet;
 import java.util.Set;

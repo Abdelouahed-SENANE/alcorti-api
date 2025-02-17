@@ -1,5 +1,6 @@
 package ma.youcode.api.advice;
 
+import ma.youcode.api.exceptions.DriverNotAllowedException;
 import ma.youcode.api.exceptions.InvalidShipmentStateException;
 import ma.youcode.api.exceptions.UnauthorizedShipmentAccessException;
 import ma.youcode.api.exceptions.UploadImageException;
@@ -31,6 +32,12 @@ public class GlobalControllerAdvice extends AbstractGlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedShipmentAccessException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseEntity<ErrorDTO> handleUnauthorizedShipmentAccessException(InvalidShipmentStateException e) {
+        return error(HttpStatus.FORBIDDEN.value() , e.getMessage());
+    }
+
+    @ExceptionHandler(DriverNotAllowedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<ErrorDTO> handleDriverNotAllowedException(DriverNotAllowedException e) {
         return error(HttpStatus.FORBIDDEN.value() , e.getMessage());
     }
 

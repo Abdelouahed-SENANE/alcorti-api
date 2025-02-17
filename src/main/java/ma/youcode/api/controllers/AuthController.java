@@ -9,12 +9,10 @@ import ma.youcode.api.payloads.requests.RefreshTokenRequest;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.responses.JwtResponse;
 import ma.youcode.api.services.AuthService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.starter.utilities.dtos.SimpleSuccessDTO;
 import org.starter.utilities.markers.validation.OnCreate;
 
@@ -34,8 +32,8 @@ public class AuthController {
         return simpleSuccess(201, "Customer created successfully.");
     }
 
-    @PostMapping(value = {"/register/drivers"})
-    public ResponseEntity<SimpleSuccessDTO> registerDriver(@RequestBody @Validated({OnCreate.class}) UserRequest request) {
+    @PostMapping(value = {"/register/drivers"} , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SimpleSuccessDTO> registerDriver(@ModelAttribute @Validated({OnCreate.class}) UserRequest request) {
         authService.register(request, UserType.DRIVER);
         return simpleSuccess(201, "Driver created successfully.");
     }

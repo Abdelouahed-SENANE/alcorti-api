@@ -1,6 +1,6 @@
 package ma.youcode.api.utilities.mappers;
 
-import ma.youcode.api.models.ShipmentItem;
+import ma.youcode.api.models.shipments.ShipmentItem;
 import ma.youcode.api.payloads.requests.ShipmentItemRequest;
 import ma.youcode.api.payloads.responses.ShipmentItemResponse;
 import org.mapstruct.BeanMapping;

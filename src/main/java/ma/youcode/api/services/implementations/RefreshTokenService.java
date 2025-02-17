@@ -17,6 +17,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class RefreshTokenService {
 
     private static final Logger log = LogManager.getLogger(RefreshTokenService.class);

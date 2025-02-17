@@ -1,4 +1,4 @@
-package ma.youcode.api.models;
+package ma.youcode.api.models.shipments;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import ma.youcode.api.enums.ShipmentStatus;
+import ma.youcode.api.models.Payment;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;
 import ma.youcode.api.utilities.shared.Coordinates;
@@ -79,6 +80,23 @@ public class Shipment extends Auditable {
     private Set<Payment> payments = new HashSet<>();
 
 
+    public void markAsPending() {
+        this.setShipmentStatus(ShipmentStatus.PENDING);
+    }
+    public void markAsInTransit() {
+        this.setShipmentStatus(ShipmentStatus.IN_TRANSIT);
+    }
 
+    public void markAsDelivered() {
+        this.setShipmentStatus(ShipmentStatus.DELIVERED);
+    }
+
+    public void markAsApplied() {
+        this.setShipmentStatus(ShipmentStatus.APPLIED);
+    }
+
+    public void markAsCancelled() {
+        this.setShipmentStatus(ShipmentStatus.CANCELLED);
+    }
 
 }

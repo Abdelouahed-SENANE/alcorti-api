@@ -1,4 +1,4 @@
-package ma.youcode.api.models;
+package ma.youcode.api.models.shipments;
 
 import jakarta.persistence.*;
 import lombok.*;
