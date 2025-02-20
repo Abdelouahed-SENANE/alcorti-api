@@ -17,7 +17,7 @@ import java.util.Set;
 @Getter
 @Setter
 @DiscriminatorValue("ROLE_DRIVER")
-@Table(name = "DRIVERS")
+@Table(name = "drivers")
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder

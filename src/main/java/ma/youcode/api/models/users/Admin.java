@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @DiscriminatorValue("ROLE_ADMIN")
-@Table(name = "ADMINS")
+@Table(name = "admins")
 @AllArgsConstructor
 public class Admin extends User {
 

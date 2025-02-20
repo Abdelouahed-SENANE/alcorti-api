@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
-import ma.youcode.api.annotations.validation.FileGuard;
+import ma.youcode.api.annotations.validation.FileCheck;
 import ma.youcode.api.models.users.User;
 import ma.youcode.api.utilities.shared.Coordinates;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +34,7 @@ public record UserRequest
                 @NotBlank(groups = OnCreate.class)
                 @Size(min = 8, message = "Password must be at least 8 characters long", groups = OnCreate.class)
                 String password,
-                @FileGuard(groups = {OnUpdate.class}, maxSize = 2)
+                @FileCheck(groups = {OnUpdate.class}, maxSize = 2)
                 MultipartFile photo,
                 Coordinates coordinates,
                 @NotBlank(groups = OnCreate.class)

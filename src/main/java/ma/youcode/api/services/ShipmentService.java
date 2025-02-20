@@ -28,7 +28,8 @@ public interface ShipmentService extends
 
     ShipmentResponse create(ShipmentRequest request);
     ShipmentResponse update(UUID shipmentId, ShipmentRequest request);
-
+    Shipment findById(UUID id);
     void delete(UUID shipmentId);
+
 }
 

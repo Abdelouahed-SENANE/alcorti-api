@@ -1,9 +1,6 @@
 package ma.youcode.api.advice;
 
-import ma.youcode.api.exceptions.DriverNotAllowedException;
-import ma.youcode.api.exceptions.InvalidShipmentStateException;
-import ma.youcode.api.exceptions.UnauthorizedShipmentAccessException;
-import ma.youcode.api.exceptions.UploadImageException;
+import ma.youcode.api.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -39,6 +36,18 @@ public class GlobalControllerAdvice extends AbstractGlobalExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseEntity<ErrorDTO> handleDriverNotAllowedException(DriverNotAllowedException e) {
         return error(HttpStatus.FORBIDDEN.value() , e.getMessage());
+    }
+
+    @ExceptionHandler(PaymentFailedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorDTO> handlePaymentFailedException(PaymentFailedException e) {
+        return error(HttpStatus.BAD_REQUEST.value() , e.getMessage());
+    }
+
+    @ExceptionHandler(DuplicatePaymentException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<ErrorDTO> handleDuplicatePaymentException(DuplicatePaymentException e) {
+        return error(HttpStatus.CONFLICT.value() , e.getMessage());
     }
 
 }

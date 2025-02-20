@@ -21,6 +21,7 @@
         <jwt.version>0.12.5</jwt.version>
         <security.version>6.4.2</security.version>
         <expiring.map.version>0.5.10</expiring.map.version>
+        <stripe.version>22.2.0</stripe.version>
     </properties>
     <dependencies>
         <dependency>
@@ -149,6 +150,13 @@
             <version>RELEASE</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>${stripe.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -169,6 +177,8 @@
                             <version>${mapstruct.version}</version>
                         </path>
                     </annotationProcessorPaths>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
 

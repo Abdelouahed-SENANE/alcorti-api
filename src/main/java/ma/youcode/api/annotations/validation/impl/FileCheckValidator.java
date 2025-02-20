@@ -2,19 +2,19 @@ package ma.youcode.api.annotations.validation.impl;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import ma.youcode.api.annotations.validation.FileGuard;
+import ma.youcode.api.annotations.validation.FileCheck;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class FileGuardValidator implements ConstraintValidator<FileGuard, MultipartFile> {
+public class FileCheckValidator implements ConstraintValidator<FileCheck, MultipartFile> {
     private long maxSize;
     private Set<String> allowedTypes;
 
     @Override
-    public void initialize(FileGuard constraintAnnotation) {
+    public void initialize(FileCheck constraintAnnotation) {
         this.maxSize = constraintAnnotation.maxSize() * 1024 * 1024;
         this.allowedTypes = Arrays.stream(constraintAnnotation.allowedTypes()).collect(Collectors.toSet());
     }
@@ -23,10 +23,9 @@ public class FileGuardValidator implements ConstraintValidator<FileGuard, Multip
     public boolean isValid(MultipartFile image, ConstraintValidatorContext context) {
 
         if (image == null || image.isEmpty()) {
-            String errMessage = "File is required!";
-            addViolation(context, errMessage);
-            return false;
+            return true;
         }
+
         String contentType = image.getContentType();
 
         if (!allowedTypes.contains(contentType)) {

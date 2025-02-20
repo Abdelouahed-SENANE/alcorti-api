@@ -17,7 +17,7 @@ import java.util.Set;
 @Setter
 @DiscriminatorValue("ROLE_CUSTOMER")
 @Entity
-@Table(name = "CUSTOMERS")
+@Table(name = "cutomers")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Customer extends User {

@@ -1,27 +1,26 @@
 package ma.youcode.api.services.implementations;
 
 import lombok.RequiredArgsConstructor;
-import ma.youcode.api.enums.RoleType;
-import ma.youcode.api.enums.ShipmentStatus;
-import ma.youcode.api.enums.UserType;
+import ma.youcode.api.enums.*;
 import ma.youcode.api.exceptions.DriverNotAllowedException;
 import ma.youcode.api.exceptions.InvalidShipmentStateException;
+import ma.youcode.api.exceptions.ResourceNotFoundException;
 import ma.youcode.api.exceptions.UnauthorizedShipmentAccessException;
+import ma.youcode.api.models.payments.Payment;
 import ma.youcode.api.models.shipments.Shipment;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;
-import ma.youcode.api.models.users.User;
 import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.ShipmentRequest;
 import ma.youcode.api.payloads.responses.ShipmentResponse;
 import ma.youcode.api.repositories.ShipmentRepository;
 import ma.youcode.api.services.ImageService;
 import ma.youcode.api.services.ShipmentService;
-import ma.youcode.api.services.UserService;
 import ma.youcode.api.utilities.PricingCalculator;
 import ma.youcode.api.utilities.mappers.ShipmentMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.starter.utilities.mappers.GenericMapper;
 import org.starter.utilities.repositories.GenericRepository;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,7 +43,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final ShipmentRepository shipmentRepository;
     private final ImageService imageService;
     private final ShipmentMapper shipmentMapper;
-    private final UserService userService;
+    private final ApplicationEventPublisher publisher;
 
 
     /**
@@ -81,16 +81,19 @@ public class ShipmentServiceImpl implements ShipmentService {
     public ShipmentResponse create(ShipmentRequest request) {
 
         UUID customerId = getAuthUser().getId();
-
-        User customer = userService.findById(customerId);
         Shipment shipment = shipmentMapper.fromRequestDTO(request);
 
-        shipment.setCustomer((Customer) customer);
-        shipment.setShipmentStatus(ShipmentStatus.PENDING);
-        attachShipmentItems(shipment);
+        shipment.setCustomer(Customer.builder()
+                .id(customerId)
+                .build());
 
+        shipment.setShipmentStatus(ShipmentStatus.PENDING);
+
+        attachShipmentItems(shipment);
         calculateDistance(shipment);
         calculateShipmentPrice(shipment);
+
+
         return shipmentMapper.toResponseDTO(shipmentRepository.save(shipment));
     }
 
@@ -208,7 +211,6 @@ public class ShipmentServiceImpl implements ShipmentService {
         });
 
     }
-
 
 
     @Override
@@ -369,10 +371,15 @@ public class ShipmentServiceImpl implements ShipmentService {
             case PENDING -> newStatus == ShipmentStatus.APPLIED || newStatus == ShipmentStatus.CANCELLED;
             case APPLIED -> newStatus == ShipmentStatus.IN_TRANSIT || newStatus == ShipmentStatus.PENDING;
             case IN_TRANSIT -> newStatus == ShipmentStatus.DELIVERED || newStatus == ShipmentStatus.CANCELLED;
-            case CANCELLED -> newStatus == ShipmentStatus.PENDING || newStatus == ShipmentStatus.APPLIED || newStatus == ShipmentStatus.IN_TRANSIT;
+            case CANCELLED ->
+                    newStatus == ShipmentStatus.PENDING || newStatus == ShipmentStatus.APPLIED || newStatus == ShipmentStatus.IN_TRANSIT;
             default -> false;
         };
     }
 
+    @Override
+    public Shipment findById(UUID id) {
+        return shipmentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Shipment not found."));
+    }
 }
 

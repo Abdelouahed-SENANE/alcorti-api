@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "USERS")
+@Table(name = "users")
 @DiscriminatorColumn(name = "role_name")
 @Setter
 @Getter

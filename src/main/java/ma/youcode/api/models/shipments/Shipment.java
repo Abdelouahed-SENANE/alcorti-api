@@ -1,13 +1,10 @@
 package ma.youcode.api.models.shipments;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import ma.youcode.api.enums.ShipmentStatus;
-import ma.youcode.api.models.Payment;
+import ma.youcode.api.models.payments.Payment;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;
 import ma.youcode.api.utilities.shared.Coordinates;
@@ -37,15 +34,15 @@ public class Shipment extends Auditable {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "lat", column = @Column(name = "departure_latitude")),
-            @AttributeOverride(name = "lon", column = @Column(name = "departure_longitude"))
+            @AttributeOverride(name = "lat", column = @Column(name = "departure_lat")),
+            @AttributeOverride(name = "lon", column = @Column(name = "departure_lon"))
     })
     private Coordinates departure;
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "lat", column = @Column(name = "arrival_latitude")),
-            @AttributeOverride(name = "lon", column = @Column(name = "arrival_longitude"))
+            @AttributeOverride(name = "lat", column = @Column(name = "arrival_lat")),
+            @AttributeOverride(name = "lon", column = @Column(name = "arrival_lon"))
     })
     private Coordinates arrival;
 
@@ -65,7 +62,7 @@ public class Shipment extends Auditable {
     @Enumerated(EnumType.STRING)
     private ShipmentStatus shipmentStatus;
 
-    @OneToMany(mappedBy = "shipment" , cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ShipmentItem> shipmentItems = new HashSet<>();
 
     @ManyToOne
@@ -76,13 +73,13 @@ public class Shipment extends Auditable {
     @JoinColumn(name = "driver_id")
     private Driver driver;
 
-    @OneToMany(mappedBy = "shipment" , cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Payment> payments = new HashSet<>();
-
+    @OneToOne(mappedBy = "shipment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Payment payment;
 
     public void markAsPending() {
         this.setShipmentStatus(ShipmentStatus.PENDING);
     }
+
     public void markAsInTransit() {
         this.setShipmentStatus(ShipmentStatus.IN_TRANSIT);
     }

@@ -1,6 +1,6 @@
 package ma.youcode.api.enums;
 
 public enum PaymentMethod {
-    ONLINE,
+    CREDIT_CARD,
     CASH
 }
