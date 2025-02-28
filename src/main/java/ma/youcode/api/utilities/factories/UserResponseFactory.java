@@ -1,5 +1,6 @@
 package ma.youcode.api.utilities.factories;
 
+import ma.youcode.api.enums.RoleType;
 import ma.youcode.api.models.users.Admin;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;
@@ -7,7 +8,7 @@ import ma.youcode.api.models.users.User;
 import ma.youcode.api.payloads.responses.UserResponse;
 
 
-public interface UserResponseDTOFactory {
+public interface UserResponseFactory {
     static UserResponse build(User user) {
         if (user instanceof Admin admin) {
             return UserResponse.builder()
@@ -45,15 +46,16 @@ public interface UserResponseDTOFactory {
                     .photoURL(driver.getPhotoUrl())
                     .phoneNumber(driver.getPhoneNumber())
                     .emailVerified(driver.getIsEmailVerified())
+                    .isProfileCompleted(driver.isProfileCompleted())
                     .role(driver.getRole())
-                    .coordinates(driver.getCoordinates())
+                    .Location(driver.getLocation())
                     .build();
-
         } else {
             throw new UnsupportedOperationException("Unknown user type: " + user.getClass().getSimpleName());
         }
 
     }
+
 }
 
 

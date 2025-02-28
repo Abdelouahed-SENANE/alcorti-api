@@ -17,7 +17,7 @@ public record VehicleOfDriverRequest(
         MultipartFile image,
 
         @NotBlank(groups = OnCreate.class)
-        String licencePlate
+        String licensePlate
 
 ) {
 }

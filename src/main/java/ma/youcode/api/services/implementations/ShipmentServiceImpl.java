@@ -1,12 +1,11 @@
 package ma.youcode.api.services.implementations;
 
 import lombok.RequiredArgsConstructor;
-import ma.youcode.api.enums.*;
+import ma.youcode.api.enums.ShipmentStatus;
 import ma.youcode.api.exceptions.DriverNotAllowedException;
 import ma.youcode.api.exceptions.InvalidShipmentStateException;
 import ma.youcode.api.exceptions.ResourceNotFoundException;
 import ma.youcode.api.exceptions.UnauthorizedShipmentAccessException;
-import ma.youcode.api.models.payments.Payment;
 import ma.youcode.api.models.shipments.Shipment;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;
@@ -29,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.starter.utilities.mappers.GenericMapper;
 import org.starter.utilities.repositories.GenericRepository;
 
-import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,7 +41,6 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final ShipmentRepository shipmentRepository;
     private final ImageService imageService;
     private final ShipmentMapper shipmentMapper;
-    private final ApplicationEventPublisher publisher;
 
 
     /**
@@ -110,7 +107,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     public ShipmentResponse update(UUID shipmentId, ShipmentRequest request) {
         return findAndExecute(shipmentId, shipment -> {
-            canPerformAction(shipment, "update");
+            hasPermission(shipment, "update");
             detachShipmentItems(shipment);
             shipmentMapper.updateEntity(request, shipment);
             attachShipmentItems(shipment);
@@ -131,7 +128,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     public void delete(UUID shipmentId) {
         findAndExecute(shipmentId, shipment -> {
-            canPerformAction(shipment, "delete");
+            hasPermission(shipment, "delete");
             shipmentRepository.delete(shipment);
             shipment.getShipmentItems().forEach(item -> {
                 imageService.delete(item.getImageURL());
@@ -303,7 +300,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         }
     }
 
-    private void canPerformAction(Shipment shipment, String action) {
+    private void hasPermission(Shipment shipment, String action) {
         if (!isOwnership(shipment)) {
             throw new UnauthorizedShipmentAccessException(String.format("You don't have permission to %s this shipment", action));
         }

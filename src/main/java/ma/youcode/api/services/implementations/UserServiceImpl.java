@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import ma.youcode.api.annotations.AuthUser;
 import ma.youcode.api.enums.UserType;
 import ma.youcode.api.exceptions.ResourceNotFoundException;
+import ma.youcode.api.models.Image;
 import ma.youcode.api.models.users.Driver;
 import ma.youcode.api.models.users.User;
 import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.models.vehicles.Vehicle;
 import ma.youcode.api.models.vehicles.VehicleOfDriver;
+import ma.youcode.api.payloads.requests.DriverCompleteRequest;
 import ma.youcode.api.payloads.requests.UserRequest;
 import ma.youcode.api.payloads.requests.VehicleOfDriverRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
@@ -17,9 +19,12 @@ import ma.youcode.api.services.ImageService;
 import ma.youcode.api.services.UserService;
 import ma.youcode.api.services.VehicleService;
 import ma.youcode.api.utilities.factories.UserFactory;
+import ma.youcode.api.utilities.factories.UserResponseFactory;
 import ma.youcode.api.utilities.mappers.UserMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +32,15 @@ import org.springframework.web.multipart.MultipartFile;
 import org.starter.utilities.mappers.GenericMapper;
 import org.starter.utilities.repositories.GenericRepository;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private static final Logger log = LogManager.getLogger(UserServiceImpl.class);
@@ -54,30 +62,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void create(UserRequest dto, UserType userType) {
-        User user = UserFactory.build(dto, userType);
-        user.setActive(true);
-        user.setIsEmailVerified(true);
+    public void create(UserRequest dto) {
+        User user = UserFactory.build(dto);
         user.setPassword(passwordEncoder.encode(dto.password()));
-
-        if (userType.equals(UserType.DRIVER)) {
-            addVehiclesToDriver(dto.vehicles(), (Driver) user);
-        }
 
         userRepository.save(user);
     }
 
-    private void addVehiclesToDriver(List<VehicleOfDriverRequest> vehicleOfDriverRequests, Driver driver) {
-        vehicleOfDriverRequests.forEach(vehicleOfDriverRequest -> {
-            Vehicle vehicle = vehicleService.loadById(vehicleOfDriverRequest.vehicleId());
-            vehicle.getVehiclesOfDriver().add(VehicleOfDriver.builder()
-                    .driver(driver)
-                    .vehicle(vehicle)
-                    .licensePlate(vehicleOfDriverRequest.licencePlate())
-                    .imageUrl(imageService.uploadImage(vehicleOfDriverRequest.image()))
-                    .build());
-        });
-    }
 
     @Override
     public UserResponse update(UUID uuid, UserRequest dto) {
@@ -127,11 +118,50 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void logout(UserSecurity user) {
-        refreshTokenService.loadRefreshTokenByUserId(user.getId()).ifPresent(refreshTokenService::delete);
+        refreshTokenService.loadRefreshTokenByUserCin(user.getCin()).ifPresent(refreshTokenService::delete);
     }
 
     @Override
-    public UserResponse readCurrentUser(@AuthUser UserSecurity user) {
-        return UserResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName()).email(user.getEmail()).cin(user.getCin()).photoURL(user.getPhotoUrl()).role(user.getRole()).build();
+    public boolean emailExists(String email) {
+        return userRepository.findByEmailOrCin(email).isPresent();
+    }
+
+    @Override
+    public boolean cinExists(String cin) {
+        return userRepository.findByEmailOrCin(cin).isPresent();
+    }
+
+    @Override
+    public void finalizeDriverRegistration(DriverCompleteRequest dto) {
+
+        Driver driver = (Driver) findById(getAuthUserId());
+        updateDriverProfile(driver, dto.vehicles());
+        driver.setLocation(dto.location());
+        driver.setProfileCompleted(true);
+        userRepository.save(driver);
+    }
+
+    private UUID getAuthUserId() {
+        return ((UserSecurity) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+    }
+
+    private void updateDriverProfile(Driver driver, List<VehicleOfDriverRequest> vehicles) {
+        driver.getVehiclesOfDriver().clear();
+
+        driver.getVehiclesOfDriver().addAll(
+                vehicles.stream()
+                        .map(this::createVehicleOfDriver)
+                        .collect(Collectors.toSet()));
+    }
+
+    private VehicleOfDriver createVehicleOfDriver(VehicleOfDriverRequest vehicleOfDriver) {
+        Vehicle vehicle = vehicleService.loadById(vehicleOfDriver.vehicleId());
+        String imageUrl = imageService.uploadImage(vehicleOfDriver.image());
+        return VehicleOfDriver.builder()
+                .licensePlate(vehicleOfDriver.licensePlate())
+                .imageUrl(imageUrl)
+                .vehicle(vehicle)
+                .driver((Driver) findById(getAuthUserId()))
+                .build();
     }
 }

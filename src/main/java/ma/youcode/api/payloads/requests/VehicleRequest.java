@@ -1,12 +1,7 @@
 package ma.youcode.api.payloads.requests;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import org.starter.utilities.markers.validation.OnCreate;
-
-import java.util.UUID;
 
 public record VehicleRequest(
 

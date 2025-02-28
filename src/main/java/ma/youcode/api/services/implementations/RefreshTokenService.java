@@ -29,7 +29,7 @@ public class RefreshTokenService {
     @Transactional
     public String createRefreshToken(UserSecurity user) {
 
-        RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId())
+        RefreshToken refreshToken = refreshTokenRepository.findByUserCin(user.getCin())
                 .orElse(new RefreshToken());
         refreshToken.setUser(user);
         refreshToken.setToken(UUID.randomUUID().toString());
@@ -51,8 +51,8 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
-    public Optional<RefreshToken> loadRefreshTokenByUserId(UUID userId) {
-        return refreshTokenRepository.findByUserId(userId);
+    public Optional<RefreshToken> loadRefreshTokenByUserCin(String cin) {
+        return refreshTokenRepository.findByUserCin(cin);
     }
 
     public void delete(RefreshToken refreshToken) {

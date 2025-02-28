@@ -1,7 +1,6 @@
 package ma.youcode.api.repositories;
 
 import ma.youcode.api.models.shipments.Shipment;
-import ma.youcode.api.models.users.Driver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.starter.utilities.repositories.GenericRepository;

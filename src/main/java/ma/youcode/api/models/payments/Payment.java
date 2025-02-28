@@ -1,9 +1,11 @@
 package ma.youcode.api.models.payments;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import ma.youcode.api.enums.PaymentMethod;
 import ma.youcode.api.enums.PaymentStatus;
 import ma.youcode.api.models.shipments.Shipment;
 import org.starter.utilities.entities.Auditable;

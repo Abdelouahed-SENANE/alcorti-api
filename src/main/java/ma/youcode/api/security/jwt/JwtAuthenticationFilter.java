@@ -75,7 +75,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void authenticateToken(String token , HttpServletRequest  request) {
         String fingerprint = extractFingerprintFromCookie(request);
         String hashedFingerprint = Utils.hashFingerprint(fingerprint);
-
         if (jwtTokenValidator.validateToken(token) && jwtTokenValidator.validateFingerprint(token, hashedFingerprint)) {
             String cinOrEmail = jwtTokenProvider.getCinOrEmailFromToken(token);
             UserSecurity userSecurity = (UserSecurity) userDetailsService.loadUserByUsername(cinOrEmail);
@@ -91,6 +90,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @return fingerprint from the cookie
      */
     private String extractFingerprintFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) {
+            return null;
+        }
         return Arrays.stream(request.getCookies())
                 .filter(cookie -> cookie.getName().equals("__Secure-Fgp"))
                 .findFirst()

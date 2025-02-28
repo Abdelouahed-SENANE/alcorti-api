@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import ma.youcode.api.payloads.requests.ShipmentRequest;
 import ma.youcode.api.payloads.responses.ShipmentResponse;
 import ma.youcode.api.services.ShipmentService;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

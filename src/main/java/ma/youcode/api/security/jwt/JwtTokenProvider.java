@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -25,12 +26,11 @@ public class JwtTokenProvider {
     private long JWT_EXPIRATION;
 
 
-    public String generateToken(UserSecurity userSecurity, String hashFingerprint) {
+    public String generateToken(String cin, String hashFingerprint) {
         Instant expiryDate = Instant.now().plusMillis(JWT_EXPIRATION);
 
         return Jwts.builder()
-                .subject(userSecurity.getCin())
-                .claim("email", userSecurity.getEmail())
+                .subject(cin)
                 .claim("userFingerprint" , hashFingerprint)
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(expiryDate))
@@ -61,17 +61,18 @@ public class JwtTokenProvider {
                 .getExpiration();
     }
 
-    public String generateTokenFromUserId(UUID userId) {
-        Instant expiryDate = Instant.now().plusMillis(JWT_EXPIRATION);
-        return Jwts.builder()
-                .claims()
-                .subject(userId.toString())
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(expiryDate))
-                .and()
-                .signWith(getSigningKey(), Jwts.SIG.HS256)
-                .compact();
-    }
+//    public String generateTokenFromUserId(UUID userId , String hashFingerprint) {
+//        Instant expiryDate = Instant.now().plusMillis(JWT_EXPIRATION);
+//        Map<String , String> claims = Map.of("userFingerprint", hashFingerprint);
+//
+//        return Jwts.builder()
+//                .subject(userId.toString())
+//                .claims(claims)
+//                .issuedAt(Date.from(Instant.now()))
+//                .expiration(Date.from(expiryDate))
+//                .signWith(getSigningKey(), Jwts.SIG.HS256)
+//                .compact();
+//    }
 
     public String getFingerprintFromToken(String token) {
         return  Jwts.parser()

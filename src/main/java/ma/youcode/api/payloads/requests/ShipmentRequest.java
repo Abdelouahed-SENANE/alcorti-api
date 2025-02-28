@@ -5,7 +5,7 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import ma.youcode.api.utilities.shared.Coordinates;
+import ma.youcode.api.utilities.shared.Location;
 import org.starter.utilities.markers.validation.OnCreate;
 
 import java.time.LocalDateTime;
@@ -18,10 +18,10 @@ public record ShipmentRequest(
         String title,
 
         @Valid
-        Coordinates arrival,
+        Location arrival,
 
         @Valid
-        Coordinates departure,
+        Location departure,
 
         @NotNull(groups = {OnCreate.class}, message = "Start time is required")
         LocalDateTime startTime,

@@ -3,7 +3,7 @@ package ma.youcode.api.payloads.responses;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import ma.youcode.api.enums.RoleType;
-import ma.youcode.api.utilities.shared.Coordinates;
+import ma.youcode.api.utilities.shared.Location;
 
 import java.util.UUID;
 
@@ -16,10 +16,11 @@ public record UserResponse(
         String lastName,
         String email,
         String photoURL,
-        Coordinates coordinates,
+        Location Location,
         String phoneNumber,
         Boolean active,
         Boolean emailVerified,
+        Boolean isProfileCompleted,
         RoleType role
 ) {
 }

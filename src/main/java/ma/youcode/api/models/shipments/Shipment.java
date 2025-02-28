@@ -1,13 +1,16 @@
 package ma.youcode.api.models.shipments;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import ma.youcode.api.enums.ShipmentStatus;
 import ma.youcode.api.models.payments.Payment;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;
-import ma.youcode.api.utilities.shared.Coordinates;
+import ma.youcode.api.utilities.shared.Location;
 import org.starter.utilities.entities.Auditable;
 
 import java.time.LocalDateTime;
@@ -35,16 +38,18 @@ public class Shipment extends Auditable {
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "lat", column = @Column(name = "departure_lat")),
-            @AttributeOverride(name = "lon", column = @Column(name = "departure_lon"))
+            @AttributeOverride(name = "lon", column = @Column(name = "departure_lon")),
+            @AttributeOverride(name = "name", column = @Column(name = "departure_name"))
     })
-    private Coordinates departure;
+    private Location departure;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "lat", column = @Column(name = "arrival_lat")),
-            @AttributeOverride(name = "lon", column = @Column(name = "arrival_lon"))
+            @AttributeOverride(name = "lon", column = @Column(name = "arrival_lon")),
+            @AttributeOverride(name = "name", column = @Column(name = "arrival_name"))
     })
-    private Coordinates arrival;
+    private Location arrival;
 
     @Column(name = "distance")
     private double distance;

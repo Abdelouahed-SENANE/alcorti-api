@@ -1,10 +1,7 @@
 package ma.youcode.api.models.vehicles;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.starter.utilities.entities.Auditable;
 
 import java.util.HashSet;
@@ -17,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "vehicles")
+@Builder
 public class Vehicle extends Auditable {
 
     @Id

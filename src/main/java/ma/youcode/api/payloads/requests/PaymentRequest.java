@@ -1,6 +1,5 @@
 package ma.youcode.api.payloads.requests;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import ma.youcode.api.annotations.validation.FileCheck;
 import ma.youcode.api.annotations.validation.ReceiptRequiredForCash;
