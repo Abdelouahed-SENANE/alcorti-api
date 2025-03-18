@@ -24,7 +24,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String cinOrEmail) throws UsernameNotFoundException {
 
-        return userRepository.findByCinOrEmail(cinOrEmail , cinOrEmail)
+        return userRepository.findByEmailOrCin(cinOrEmail)
                 .map(user -> {
                     user.setLoggedAt(LocalDateTime.now());
                     return userRepository.save(user);

@@ -35,5 +35,4 @@ public class AuthControllerAdvice extends AbstractGlobalExceptionHandler {
         return error(HttpStatus.EXPECTATION_FAILED.value() , e.getMessage());
     }
 
-
 }

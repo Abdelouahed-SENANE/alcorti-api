@@ -1,24 +1,31 @@
 package ma.youcode.api.payloads.responses;
 
+import lombok.Builder;
 import ma.youcode.api.enums.ShipmentStatus;
 import ma.youcode.api.payloads.embedded.CustomerEmbedded;
-import ma.youcode.api.utilities.shared.Coordinates;
+import ma.youcode.api.payloads.embedded.DriverEmbedded;
+import ma.youcode.api.utilities.shared.Location;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@Builder
 public record ShipmentResponse(
-    UUID shipmentId,
+    UUID id,
     String title,
-    Coordinates departure,
-    Coordinates arrival,
+    Location departure,
+    Location arrival,
     double distance,
     double price,
-    LocalDateTime startTime,
-    LocalDateTime endTime,
+    Instant startTime,
+    Instant endTime,
     ShipmentStatus shipmentStatus,
-    Set<ShipmentItemResponse> shipmentItems,
-    CustomerEmbedded customer
+    List<ShipmentItemResponse> items,
+    CustomerEmbedded customer,
+    DriverEmbedded driver,
+    PaymentResponse payment
 ) {
 }

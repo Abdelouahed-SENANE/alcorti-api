@@ -17,7 +17,6 @@ public class OnUserLogoutSuccessEventListener implements ApplicationListener<OnU
     private final LoggedOutTokenCache tokenCache;
     @Override
     public void onApplicationEvent(@NotNull OnUserLogoutSuccessEvent event) {
-        log.info("Token {} has been logged out for user [{}]", event.getToken(), event.getUserCin());
         tokenCache.markTokenAsLoggedOut(event);
     }
 }

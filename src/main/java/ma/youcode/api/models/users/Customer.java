@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import ma.youcode.api.models.Shipment;
+import ma.youcode.api.models.shipments.Shipment;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -17,7 +17,7 @@ import java.util.Set;
 @Setter
 @DiscriminatorValue("ROLE_CUSTOMER")
 @Entity
-@Table(name = "CUSTOMERS")
+@Table(name = "cutomers")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Customer extends User {

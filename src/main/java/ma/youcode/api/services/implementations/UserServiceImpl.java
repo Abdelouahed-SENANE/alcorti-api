@@ -4,27 +4,46 @@ import lombok.RequiredArgsConstructor;
 import ma.youcode.api.annotations.AuthUser;
 import ma.youcode.api.enums.UserType;
 import ma.youcode.api.exceptions.ResourceNotFoundException;
-import ma.youcode.api.models.users.UserSecurity;
+import ma.youcode.api.models.Image;
+import ma.youcode.api.models.users.Driver;
 import ma.youcode.api.models.users.User;
+import ma.youcode.api.models.users.UserSecurity;
+import ma.youcode.api.models.vehicles.Vehicle;
+import ma.youcode.api.models.vehicles.VehicleOfDriver;
+import ma.youcode.api.payloads.requests.DriverCompleteRequest;
 import ma.youcode.api.payloads.requests.UserRequest;
+import ma.youcode.api.payloads.requests.VehicleOfDriverRequest;
 import ma.youcode.api.payloads.responses.UserResponse;
 import ma.youcode.api.repositories.UserRepository;
+import ma.youcode.api.services.ImageService;
 import ma.youcode.api.services.UserService;
+import ma.youcode.api.services.VehicleService;
 import ma.youcode.api.utilities.factories.UserFactory;
+import ma.youcode.api.utilities.factories.UserResponseFactory;
 import ma.youcode.api.utilities.mappers.UserMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.starter.utilities.mappers.GenericMapper;
 import org.starter.utilities.repositories.GenericRepository;
 
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private static final Logger log = LogManager.getLogger(UserServiceImpl.class);
@@ -32,6 +51,8 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final ImageService imageService;
+    private final VehicleService vehicleService;
 
     @Override
     public GenericRepository<User, UUID> getRepository() {
@@ -44,66 +65,133 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void create(UserRequest dto , UserType userType) {
-        User user = UserFactory.build(dto , userType);
-        user.setActive(true);
-        user.setIsEmailVerified(true);
+    public void create(UserRequest dto) {
+        User user = UserFactory.build(dto);
         user.setPassword(passwordEncoder.encode(dto.password()));
+
         userRepository.save(user);
     }
 
+
     @Override
     public UserResponse update(UUID uuid, UserRequest dto) {
-        return findAndExecute(uuid , user -> {
-            userMapper.updateEntity(dto , user);
+        return findAndExecute(uuid, user -> {
+            userMapper.updateEntity(dto, user);
             return userMapper.toResponseDTO(user);
         });
 
     }
 
     @Override
-    public void disableAccount(UUID uuid) {
-        findAndExecute(uuid , user -> {
-            if (!user.getActive()){
-                throw new IllegalArgumentException("Account is already locked");
+    public void updatePhoto(UUID uuid, MultipartFile image) {
+        findAndExecute(uuid, user -> {
+            if (user.getPhotoUrl() != null) {
+                imageService.delete(user.getPhotoUrl());
             }
-            user.setActive(false);
+            user.setPhotoUrl(imageService.uploadImage(image));
+        });
+    }
+
+    @Override
+    public void modifyAccountStatus(UUID uuid , Boolean active) {
+        log.info("Modifying account status {}" , active);
+        findAndExecute(uuid, user -> {
+            if (active && user.getActive()) {
+                throw new IllegalArgumentException("This account is already active");
+            }
+            if (!active && !user.getActive()) {
+                throw new IllegalArgumentException("This account is already inactive");
+            }
+            user.setActive(active);
             userRepository.save(user);
         });
     }
 
     @Override
     public User findById(UUID uuid) {
-        return userRepository.findById(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+        return userRepository.findById(uuid).orElseThrow(() -> new ResourceNotFoundException("User not found."));
     }
 
-    @Override
-    public void enableAccount(UUID uuid) {
-        findAndExecute(uuid , user -> {
-            if (user.getActive()){
-                throw new IllegalArgumentException("Account is already active");
-            }
-            user.setActive(true);
-            userRepository.save(user);
-        });
-    }
+//    @Override
+//    public void enableAccount(UUID uuid) {
+//        findAndExecute(uuid, user -> {
+//            if (user.getActive()) {
+//                throw new IllegalArgumentException("Account is already active");
+//            }
+//            user.setActive(true);
+//            userRepository.save(user);
+//        });
+//    }
 
     @Override
     public void logout(UserSecurity user) {
-        refreshTokenService.loadRefreshTokenByUserId(user.getId()).ifPresent(refreshTokenService::delete);
+        refreshTokenService.loadRefreshTokenByUserCin(user.getCin()).ifPresent(refreshTokenService::delete);
     }
 
     @Override
-    public UserResponse readCurrentUser(@AuthUser UserSecurity user) {
-        return UserResponse.builder()
-                .id(user.getId())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .cin(user.getCin())
-                .photoURL(user.getPhotoURL())
-                .role(user.getRole())
+    public boolean emailExists(String email) {
+        return userRepository.findByEmailOrCin(email).isPresent();
+    }
+
+    @Override
+    public boolean cinExists(String cin) {
+        return userRepository.findByEmailOrCin(cin).isPresent();
+    }
+
+    @Override
+    public void finalizeDriverRegistration(DriverCompleteRequest dto) {
+
+        Driver driver = (Driver) findById(getAuthUserId());
+        updateDriverProfile(driver, dto.vehicles());
+        driver.setLocation(dto.location());
+        driver.setProfileCompleted(true);
+        userRepository.save(driver);
+    }
+
+    private UUID getAuthUserId() {
+        return ((UserSecurity) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+    }
+
+    private void updateDriverProfile(Driver driver, List<VehicleOfDriverRequest> vehicles) {
+        driver.getVehiclesOfDriver().clear();
+
+        driver.getVehiclesOfDriver().addAll(
+                vehicles.stream()
+                        .map(this::createVehicleOfDriver)
+                        .collect(Collectors.toSet()));
+    }
+
+    private VehicleOfDriver createVehicleOfDriver(VehicleOfDriverRequest vehicleOfDriver) {
+        Vehicle vehicle = vehicleService.loadById(vehicleOfDriver.vehicleId());
+        String imageUrl = imageService.uploadImage(vehicleOfDriver.image());
+        return VehicleOfDriver.builder()
+                .licensePlate(vehicleOfDriver.licensePlate())
+                .imageUrl(imageUrl)
+                .vehicle(vehicle)
+                .driver((Driver) findById(getAuthUserId()))
                 .build();
+    }
+
+    @Override
+    public Page<UserResponse> loadAllUsers(Pageable pageable, String search) {
+        Specification<User> spec = userSpecification(search);
+        Page<User> users = userRepository.findAll(spec, pageable);
+        return users.map(userMapper::toResponseDTO);
+    }
+
+
+    private Specification<User> userSpecification(String search) {
+        return (root, query, cb) -> {
+            if (search == null) {
+                return null;
+            }
+            String lowerCaseSearch = search.toLowerCase();
+            return cb.or(
+                    cb.like(cb.lower(root.get("firstName")), "%" + lowerCaseSearch + "%"),
+                    cb.like(cb.lower(root.get("lastName")), "%" + lowerCaseSearch + "%"),
+                    cb.like(cb.lower(root.get("email")), "%" + lowerCaseSearch + "%"),
+                    cb.like(cb.lower(root.get("cin")), "%" + lowerCaseSearch + "%")
+            );
+        };
     }
 }

@@ -1,8 +1,9 @@
-package ma.youcode.api.models;
+package ma.youcode.api.models.shipments;
 
 import jakarta.persistence.*;
 import lombok.*;
 import ma.youcode.api.utilities.shared.Dimensions;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -13,11 +14,12 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table(name = "shipment_items")
 @Builder
+@ToString
 public class ShipmentItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID shipmentItemId;
+    private UUID id;
 
     @Column(name = "name")
     private String name;
@@ -30,6 +32,9 @@ public class ShipmentItem {
 
     @Column(name = "image_url")
     private String imageURL;
+
+    @Transient
+    private MultipartFile image;
 
     @ManyToOne
     @JoinColumn(name = "shipment_id" , nullable = false)

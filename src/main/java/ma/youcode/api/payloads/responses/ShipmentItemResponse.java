@@ -5,7 +5,7 @@ import ma.youcode.api.utilities.shared.Dimensions;
 import java.util.UUID;
 
 public record ShipmentItemResponse(
-    UUID shipmentItemId,
+    UUID id,
     String name,
     Dimensions dimensions,
     double volume,

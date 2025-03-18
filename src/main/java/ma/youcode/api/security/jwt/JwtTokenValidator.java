@@ -73,7 +73,10 @@ public class JwtTokenValidator {
     }
 
     public boolean validateFingerprint(String token , String hashedFingerprint) {
+        log.info("Hashed fingerprint: {}", hashedFingerprint);
+
         String storedFingerprint = jwtTokenProvider.getFingerprintFromToken(token);
+        log.info("Stored fingerprint: {}", storedFingerprint);
 
         if (!storedFingerprint.equals(hashedFingerprint)) {
             log.error("Invalid fingerprint");

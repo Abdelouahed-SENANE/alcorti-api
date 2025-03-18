@@ -2,8 +2,9 @@ package ma.youcode.api.payloads.requests;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import ma.youcode.api.annotations.validation.FileGuard;
+import ma.youcode.api.annotations.validation.FileCheck;
 import ma.youcode.api.utilities.shared.Dimensions;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,15 +16,13 @@ import java.util.UUID;
 @Builder
 public record ShipmentItemRequest(
 
-        UUID shipmentItemId,
         @NotBlank(message = "Name is required")
         @Length(max = 120, message = "Name must be at most 150 characters")
         String name,
         @Valid
         Dimensions dimensions,
-        @FileGuard(groups = {OnCreate.class , OnUpdate.class}, maxSize = 2)
-        @Valid
+        @NotNull(message = "Image is required" , groups = {OnCreate.class , OnUpdate.class})
+        @FileCheck(groups = {OnCreate.class , OnUpdate.class}, maxSize = 2 , allowedTypes = {"image/webp"})
         MultipartFile image
-
 ) {
 }

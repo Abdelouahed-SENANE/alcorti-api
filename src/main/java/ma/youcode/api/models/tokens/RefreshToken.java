@@ -5,6 +5,7 @@ import lombok.*;
 import ma.youcode.api.models.users.User;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity(name = "REFRESH_TOKEN")
 @Getter
@@ -15,15 +16,16 @@ import java.time.Instant;
 public class RefreshToken {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "token_id")
-    private Long id;
+    private UUID id;
+
     @Column(name = "token" , unique = true , nullable = false)
     private String token;
     @Column(name = "expiry_date" , nullable = false)
     private Instant expiryDate;
     @OneToOne
-    @JoinColumn(name = "user_id" , referencedColumnName = "id")
+    @JoinColumn(name = "cin" , referencedColumnName = "cin")
     private User user;
 
 }

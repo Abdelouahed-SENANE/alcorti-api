@@ -2,10 +2,11 @@ package ma.youcode.api.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-import ma.youcode.api.enums.PaymentMethod;
 import ma.youcode.api.enums.PaymentStatus;
+import ma.youcode.api.models.shipments.Shipment;
 import org.starter.utilities.entities.Auditable;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,23 +24,23 @@ public class Payment extends Auditable {
     private UUID paymentId;
 
     @Column(name = "amount")
-    private double amount;
+    private Double amount;
 
     @Column(name = "payment_status")
-    private PaymentStatus paymentStatus;
-
-    @Column(name = "payment_method")
     @Enumerated(EnumType.STRING)
-    private PaymentMethod paymentMethod;
+    private PaymentStatus paymentStatus;
 
     @Column(name = "transaction_id")
     private String transactionId;
 
+    @Column(name = "payment_intent_id")
+    private String paymentIntentId;
+
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
-    @ManyToOne
-    @JoinColumn(name = "shipment_request_id")
+    @OneToOne
+    @JoinColumn(name = "shipment_id")
     private Shipment shipment;
 
 }
