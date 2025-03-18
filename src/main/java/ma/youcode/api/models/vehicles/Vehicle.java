@@ -19,7 +19,7 @@ public class Vehicle extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID vehicleId;
+    private UUID id;
     private String vehicleName;
     private String vehicleType;
     private String vehicleWeight;

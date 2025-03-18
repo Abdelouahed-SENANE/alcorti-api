@@ -44,9 +44,9 @@ public class GlobalControllerAdvice extends AbstractGlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST.value() , e.getMessage());
     }
 
-    @ExceptionHandler(DuplicatePaymentException.class)
+    @ExceptionHandler(PaymentProcessingException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<ErrorDTO> handleDuplicatePaymentException(DuplicatePaymentException e) {
+    public ResponseEntity<ErrorDTO> handleDuplicatePaymentException(PaymentProcessingException e) {
         return error(HttpStatus.CONFLICT.value() , e.getMessage());
     }
 

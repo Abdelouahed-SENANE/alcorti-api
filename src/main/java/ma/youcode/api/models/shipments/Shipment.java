@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import ma.youcode.api.enums.ShipmentStatus;
-import ma.youcode.api.models.payments.Payment;
+import ma.youcode.api.models.Payment;
 import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;
 import ma.youcode.api.utilities.shared.Location;
 import org.starter.utilities.entities.Auditable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -30,7 +30,7 @@ public class Shipment extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID shipmentId;
+    private UUID id;
 
     @Column(name = "title")
     private String title;
@@ -58,17 +58,17 @@ public class Shipment extends Auditable {
     private double price;
 
     @Column(name = "start_time")
-    private LocalDateTime startTime;
+    private Instant startTime;
 
     @Column(name = "end_time")
-    private LocalDateTime endTime;
+    private Instant endTime;
 
     @Column(name = "shipment_status")
     @Enumerated(EnumType.STRING)
     private ShipmentStatus shipmentStatus;
 
     @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ShipmentItem> shipmentItems = new HashSet<>();
+    private Set<ShipmentItem> items = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
@@ -83,6 +83,9 @@ public class Shipment extends Auditable {
 
     public void markAsPending() {
         this.setShipmentStatus(ShipmentStatus.PENDING);
+    }
+    public void markAsAccepted() {
+        this.setShipmentStatus(ShipmentStatus.ACCEPTED);
     }
 
     public void markAsInTransit() {

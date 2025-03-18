@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/v1/images")
 @RequiredArgsConstructor
-
 public class ImageController {
 
     private final ImageService imageService;

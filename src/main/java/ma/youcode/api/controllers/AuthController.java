@@ -31,6 +31,7 @@ public class AuthController {
     private final AuthService authService;
 
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/me")
     public ResponseEntity<?> userProfile() {
         Optional<UserResponse> authUserOptional = Optional.ofNullable(authService.loadMe());

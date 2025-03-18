@@ -23,6 +23,9 @@ import ma.youcode.api.utilities.factories.UserResponseFactory;
 import ma.youcode.api.utilities.mappers.UserMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -90,12 +93,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void disableAccount(UUID uuid) {
+    public void modifyAccountStatus(UUID uuid , Boolean active) {
+        log.info("Modifying account status {}" , active);
         findAndExecute(uuid, user -> {
-            if (!user.getActive()) {
-                throw new IllegalArgumentException("Account is already locked");
+            if (active && user.getActive()) {
+                throw new IllegalArgumentException("This account is already active");
             }
-            user.setActive(false);
+            if (!active && !user.getActive()) {
+                throw new IllegalArgumentException("This account is already inactive");
+            }
+            user.setActive(active);
             userRepository.save(user);
         });
     }
@@ -105,16 +112,16 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(uuid).orElseThrow(() -> new ResourceNotFoundException("User not found."));
     }
 
-    @Override
-    public void enableAccount(UUID uuid) {
-        findAndExecute(uuid, user -> {
-            if (user.getActive()) {
-                throw new IllegalArgumentException("Account is already active");
-            }
-            user.setActive(true);
-            userRepository.save(user);
-        });
-    }
+//    @Override
+//    public void enableAccount(UUID uuid) {
+//        findAndExecute(uuid, user -> {
+//            if (user.getActive()) {
+//                throw new IllegalArgumentException("Account is already active");
+//            }
+//            user.setActive(true);
+//            userRepository.save(user);
+//        });
+//    }
 
     @Override
     public void logout(UserSecurity user) {
@@ -163,5 +170,28 @@ public class UserServiceImpl implements UserService {
                 .vehicle(vehicle)
                 .driver((Driver) findById(getAuthUserId()))
                 .build();
+    }
+
+    @Override
+    public Page<UserResponse> loadAllUsers(Pageable pageable, String search) {
+        Specification<User> spec = userSpecification(search);
+        Page<User> users = userRepository.findAll(spec, pageable);
+        return users.map(userMapper::toResponseDTO);
+    }
+
+
+    private Specification<User> userSpecification(String search) {
+        return (root, query, cb) -> {
+            if (search == null) {
+                return null;
+            }
+            String lowerCaseSearch = search.toLowerCase();
+            return cb.or(
+                    cb.like(cb.lower(root.get("firstName")), "%" + lowerCaseSearch + "%"),
+                    cb.like(cb.lower(root.get("lastName")), "%" + lowerCaseSearch + "%"),
+                    cb.like(cb.lower(root.get("email")), "%" + lowerCaseSearch + "%"),
+                    cb.like(cb.lower(root.get("cin")), "%" + lowerCaseSearch + "%")
+            );
+        };
     }
 }

@@ -42,6 +42,5 @@ public record UserRequest
                 @Pattern(regexp = "^(?:\\+?212\\s?|\\(?0\\)?)(\\d{9})$", message = "Invalid phone number format")
                 String phoneNumber,
                 UserType userType
-
         ) {
 }

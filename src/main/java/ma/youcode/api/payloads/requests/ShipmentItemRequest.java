@@ -16,15 +16,13 @@ import java.util.UUID;
 @Builder
 public record ShipmentItemRequest(
 
-        UUID shipmentItemId,
         @NotBlank(message = "Name is required")
         @Length(max = 120, message = "Name must be at most 150 characters")
         String name,
         @Valid
         Dimensions dimensions,
         @NotNull(message = "Image is required" , groups = {OnCreate.class , OnUpdate.class})
-        @FileCheck(groups = {OnCreate.class , OnUpdate.class}, maxSize = 2)
-        MultipartFile image,
-        String imageURL
+        @FileCheck(groups = {OnCreate.class , OnUpdate.class}, maxSize = 2 , allowedTypes = {"image/webp"})
+        MultipartFile image
 ) {
 }

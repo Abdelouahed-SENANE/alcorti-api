@@ -1,6 +1,8 @@
 package ma.youcode.api.services.implementations;
 
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import ma.youcode.api.enums.PaymentStatus;
 import ma.youcode.api.enums.ShipmentStatus;
 import ma.youcode.api.exceptions.DriverNotAllowedException;
 import ma.youcode.api.exceptions.InvalidShipmentStateException;
@@ -11,6 +13,7 @@ import ma.youcode.api.models.users.Customer;
 import ma.youcode.api.models.users.Driver;
 import ma.youcode.api.models.users.UserSecurity;
 import ma.youcode.api.payloads.requests.ShipmentRequest;
+import ma.youcode.api.payloads.requests.ShipmentSearchCriteria;
 import ma.youcode.api.payloads.responses.ShipmentResponse;
 import ma.youcode.api.repositories.ShipmentRepository;
 import ma.youcode.api.services.ImageService;
@@ -19,18 +22,16 @@ import ma.youcode.api.utilities.PricingCalculator;
 import ma.youcode.api.utilities.mappers.ShipmentMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.starter.utilities.mappers.GenericMapper;
 import org.starter.utilities.repositories.GenericRepository;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +42,6 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final ShipmentRepository shipmentRepository;
     private final ImageService imageService;
     private final ShipmentMapper shipmentMapper;
-
 
     /**
      * Retrieves the repository for the Shipment entity.
@@ -90,8 +90,10 @@ public class ShipmentServiceImpl implements ShipmentService {
         calculateDistance(shipment);
         calculateShipmentPrice(shipment);
 
+        Shipment savedShipment = shipmentRepository.save(shipment);
 
-        return shipmentMapper.toResponseDTO(shipmentRepository.save(shipment));
+
+        return shipmentMapper.toResponseDTO(savedShipment);
     }
 
     /**
@@ -130,7 +132,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         findAndExecute(shipmentId, shipment -> {
             hasPermission(shipment, "delete");
             shipmentRepository.delete(shipment);
-            shipment.getShipmentItems().forEach(item -> {
+            shipment.getItems().forEach(item -> {
                 imageService.delete(item.getImageURL());
             });
         });
@@ -198,6 +200,23 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     @Override
+    public void acceptApplyShipment(UUID shipmentId) {
+        findAndExecute(shipmentId, shipment -> {
+            verifyStatusTransition(shipment.getShipmentStatus(), ShipmentStatus.ACCEPTED);
+            verifyOwnership(shipment, "to accepted");
+            shipment.markAsAccepted();
+            shipmentRepository.save(shipment);
+        });
+    }
+
+    @Override
+    public Page<ShipmentResponse> loadOffers(Pageable pageable) {
+        UUID customerId = getAuthUser().getId();
+        Page<Shipment> shipments = shipmentRepository.findAllByShipmentStatusAndCustomerId(pageable, ShipmentStatus.APPLIED , customerId);
+        return shipments.map(shipmentMapper::toResponseDTO);
+    }
+
+    @Override
     public void cancelShipment(UUID shipmentId) {
         findAndExecute(shipmentId, shipment -> {
             verifyStatusTransition(shipment.getShipmentStatus(), ShipmentStatus.CANCELLED);
@@ -206,7 +225,6 @@ public class ShipmentServiceImpl implements ShipmentService {
             shipment.setDriver(null);
             shipmentRepository.save(shipment);
         });
-
     }
 
 
@@ -225,9 +243,9 @@ public class ShipmentServiceImpl implements ShipmentService {
      * @return a Page of ShipmentResponse objects containing the shipments for which the driver has applied
      */
     @Override
-    public Page<ShipmentResponse> loadShipmentsByDriver(Pageable pageable) {
-        UUID driverId = getAuthUser().getId();
-        Page<Shipment> shipments = shipmentRepository.findAllByDriverId(pageable, driverId);
+    public Page<ShipmentResponse> loadShipmentsByDriver(Pageable pageable , ShipmentSearchCriteria criteria) {
+        Specification<Shipment> spec = getDriverShipmentSpecification(criteria);
+        Page<Shipment> shipments = shipmentRepository.findAll(spec , pageable);
         return shipments.map(shipmentMapper::toResponseDTO);
     }
 
@@ -237,12 +255,12 @@ public class ShipmentServiceImpl implements ShipmentService {
      *
      * @param shipment shipment to detach items from.
      */
-    private void detachShipmentItems(Shipment shipment) {
-        shipment.getShipmentItems().forEach(item -> {
+    protected void detachShipmentItems(Shipment shipment) {
+        shipment.getItems().forEach(item -> {
             log.info("Image URL {}", item.getImageURL());
             imageService.delete(item.getImageURL());
         });
-        shipment.getShipmentItems().removeAll(shipment.getShipmentItems());
+        shipment.getItems().removeAll(shipment.getItems());
     }
 
     /**
@@ -250,7 +268,7 @@ public class ShipmentServiceImpl implements ShipmentService {
      *
      * @param shipment the shipment for which the price is calculated
      */
-    private void calculateShipmentPrice(Shipment shipment) {
+    protected void calculateShipmentPrice(Shipment shipment) {
         double totalVolume = calculateTotalVolume(shipment);
         shipment.setPrice(PricingCalculator.calculatePrice(totalVolume, shipment.getDistance()));
     }
@@ -262,19 +280,19 @@ public class ShipmentServiceImpl implements ShipmentService {
      *
      * @param shipment the shipment to attach items to.
      */
-    private void attachShipmentItems(Shipment shipment) {
-        shipment.getShipmentItems().forEach(item -> {
+    protected void attachShipmentItems(Shipment shipment) {
+        shipment.getItems().forEach(item -> {
             item.setShipment(shipment);
             item.setImageURL(imageService.uploadImage(item.getImage()));
             item.calculateVolume();
         });
     }
 
-    private UserSecurity getAuthUser() {
+    protected UserSecurity getAuthUser() {
         return (UserSecurity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-    private boolean isOwnership(Shipment shipment) {
+    protected boolean isOwnership(Shipment shipment) {
         return Objects.equals(shipment.getCustomer().getId(), getAuthUser().getId());
     }
 
@@ -287,7 +305,7 @@ public class ShipmentServiceImpl implements ShipmentService {
      * @param shipment the shipment to check
      * @return true if the shipment is applied by the authenticated driver, false otherwise
      */
-    private boolean isAppliedDriver(Shipment shipment) {
+    protected boolean isAppliedDriver(Shipment shipment) {
         return shipment.getDriver().getId().equals(getAuthUser().getId());
     }
 
@@ -300,7 +318,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         }
     }
 
-    private void hasPermission(Shipment shipment, String action) {
+    protected void hasPermission(Shipment shipment, String action) {
         if (!isOwnership(shipment)) {
             throw new UnauthorizedShipmentAccessException(String.format("You don't have permission to %s this shipment", action));
         }
@@ -332,11 +350,11 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
 
-    private boolean isPending(Shipment shipment) {
+    protected boolean isPending(Shipment shipment) {
         return shipment.getShipmentStatus().equals(ShipmentStatus.PENDING);
     }
 
-    private void calculateDistance(Shipment shipment) {
+    protected void calculateDistance(Shipment shipment) {
         final int R = 6371;
         double latDistance = Math.toRadians(shipment.getArrival().lat() - shipment.getDeparture().lat());
         double lonDistance = Math.toRadians(shipment.getArrival().lon() - shipment.getDeparture().lon());
@@ -348,7 +366,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     private double calculateTotalVolume(Shipment shipment) {
-        return shipment.getShipmentItems().stream()
+        return shipment.getItems().stream()
                 .mapToDouble(shipmentItem -> {
                     shipmentItem.calculateVolume();
                     shipmentItem.setShipment(shipment);
@@ -366,7 +384,8 @@ public class ShipmentServiceImpl implements ShipmentService {
     private boolean isValidStatusTransition(ShipmentStatus currentStatus, ShipmentStatus newStatus) {
         return switch (currentStatus) {
             case PENDING -> newStatus == ShipmentStatus.APPLIED || newStatus == ShipmentStatus.CANCELLED;
-            case APPLIED -> newStatus == ShipmentStatus.IN_TRANSIT || newStatus == ShipmentStatus.PENDING;
+            case APPLIED -> newStatus == ShipmentStatus.ACCEPTED || newStatus == ShipmentStatus.PENDING;
+            case ACCEPTED -> newStatus == ShipmentStatus.IN_TRANSIT || newStatus == ShipmentStatus.PENDING;
             case IN_TRANSIT -> newStatus == ShipmentStatus.DELIVERED || newStatus == ShipmentStatus.CANCELLED;
             case CANCELLED ->
                     newStatus == ShipmentStatus.PENDING || newStatus == ShipmentStatus.APPLIED || newStatus == ShipmentStatus.IN_TRANSIT;
@@ -377,6 +396,54 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     public Shipment findById(UUID id) {
         return shipmentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Shipment not found."));
+    }
+
+    @Override
+    public Page<ShipmentResponse> loadAllAvailableShipments(Pageable pageable , ShipmentSearchCriteria criteria) {
+        Specification<Shipment> spec = getCustomerShipmentSpecification(criteria);
+        Page<Shipment> shipments = shipmentRepository.findAll(spec , pageable);
+        return shipments.map(shipmentMapper::toResponseDTO);
+    }
+
+    private Specification<Shipment> getCustomerShipmentSpecification(ShipmentSearchCriteria criteria) {
+        return  (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(criteriaBuilder.equal(root.get("shipmentStatus"),ShipmentStatus.PENDING));
+            predicates.add(criteriaBuilder.equal(root.get("payment").get("paymentStatus"), PaymentStatus.SUCCEEDED));
+
+            if (criteria.departureName() != null && !criteria.departureName().isEmpty()) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("departure").get("name")), "%" + criteria.departureName().toLowerCase() + "%"));
+            }
+            if (criteria.arrivalName() != null && !criteria.arrivalName().isEmpty()) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("arrival").get("name")), "%" + criteria.arrivalName().toLowerCase() + "%"));
+            }
+            if (criteria.startTime() != null ) {
+                predicates.add(criteriaBuilder.equal(root.get("startTime") , criteria.startTime()));
+            }
+            if (criteria.endTime() != null ) {
+                predicates.add(criteriaBuilder.equal(root.get("endTime") , criteria.endTime()));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private Specification<Shipment> getDriverShipmentSpecification(ShipmentSearchCriteria criteria) {
+        return (root , query , criteriaBuilder) -> {
+            List<Predicate > predicates = new ArrayList<>();
+            UUID driverId = getAuthUser().getId();
+
+            predicates.add(criteriaBuilder.equal(root.get("driver").get("id") , driverId));
+
+            if (criteria.title() != null && !criteria.title().isEmpty()) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + criteria.title().toLowerCase() + "%"));
+            }
+
+            if (criteria.status() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("shipmentStatus"), criteria.status()));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }
 

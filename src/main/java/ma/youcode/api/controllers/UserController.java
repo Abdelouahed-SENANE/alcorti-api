@@ -56,27 +56,21 @@ public class UserController {
             @ModelAttribute @Validated({OnUpdate.class}) UserRequest request
             ,@AuthUser UserSecurity userSecurity
     ) {
-        userService.updatePhoto(userSecurity.getId(), request.photo());
+        if (request.photo() != null) {
+            userService.updatePhoto(userSecurity.getId(), request.photo());
+        }
         UserResponse responseDTO = userService.update(userSecurity.getId(), request);
         return Response.simpleSuccess(200, "User updated successfully.", responseDTO);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PatchMapping(value = {"users/{id}/disable"})
-    public ResponseEntity<SimpleSuccessDTO> disableAccount(@PathVariable UUID id
+    @PatchMapping(value = {"users/{id}/account-status"})
+    public ResponseEntity<SimpleSuccessDTO> disableAccount(@PathVariable UUID id , @RequestParam Boolean active
     ) {
-        userService.disableAccount(id);
-        return Response.simpleSuccess(200, "Account locked successfully.");
+        userService.modifyAccountStatus(id , active);
+        String message = active ? "Account enabled successfully." : "Account disabled successfully.";
+        return Response.simpleSuccess(200, message);
     }
-
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PatchMapping(value = {"users/{id}/enable"})
-    public ResponseEntity<SimpleSuccessDTO> enableAccount(@PathVariable UUID id
-    ) {
-         userService.enableAccount(id);
-        return Response.simpleSuccess(200, "Account unlocked successfully.");
-    }
-
 
     @PostMapping(value = {"users/logout"})
     public ResponseEntity<SimpleSuccessDTO> logout(@AuthUser UserSecurity user) {
@@ -89,9 +83,10 @@ public class UserController {
 
     @GetMapping("users/all")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<SimpleSuccessDTO> readAllUsers(@RequestParam(value = "page", defaultValue = DEFAULT_PAGE) int page, @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size) {
-        Pageable pageable = Pageable.ofSize(size).withPage(page);
-        return simpleSuccess(HttpStatus.OK.value(), "Users fetched successfully.", userService.readAll(pageable));
+    public ResponseEntity<SimpleSuccessDTO> readAllUsers(@RequestParam(value = "search", required = false) String search,
+                                                         @RequestParam(value = "page", defaultValue = DEFAULT_PAGE) int page, @RequestParam(value = "size", defaultValue = DEFAULT_SIZE) int size) {
+        Pageable pageable = Pageable.ofSize(size).withPage(page - 1);
+        return simpleSuccess(HttpStatus.OK.value(), "Users fetched successfully.", userService.loadAllUsers(pageable , search));
     }
 
     @DeleteMapping("users/{userId}")

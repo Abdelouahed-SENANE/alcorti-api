@@ -2,41 +2,39 @@ package ma.youcode.api.services.implementations;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Charge;
+import com.stripe.model.PaymentIntent;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import ma.youcode.api.enums.PaymentStatus;
-import ma.youcode.api.exceptions.DuplicatePaymentException;
-import ma.youcode.api.exceptions.PaymentFailedException;
-import ma.youcode.api.models.payments.CardPayment;
-import ma.youcode.api.models.payments.CashPayment;
-import ma.youcode.api.models.payments.Payment;
+import ma.youcode.api.exceptions.PaymentProcessingException;
+import ma.youcode.api.exceptions.ResourceNotFoundException;
+import ma.youcode.api.models.Payment;
 import ma.youcode.api.models.shipments.Shipment;
-import ma.youcode.api.payloads.requests.PaymentRequest;
+import ma.youcode.api.payloads.responses.ShipmentResponse;
 import ma.youcode.api.repositories.PaymentRepository;
-import ma.youcode.api.services.ImageService;
+import ma.youcode.api.repositories.ShipmentRepository;
 import ma.youcode.api.services.PaymentService;
 import ma.youcode.api.services.ShipmentService;
+import ma.youcode.api.utilities.mappers.ShipmentMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PaymentServiceImpl implements PaymentService {
 
     private static final Logger log = LogManager.getLogger(PaymentServiceImpl.class);
-    private final PaymentRepository paymentRepository;
     private final ShipmentService shipmentService;
-    private final ImageService imageService;
+    private final PaymentRepository paymentRepository;
+    private final ShipmentRepository shipmentRepository;
+    private final ShipmentMapper shipmentMapper;
 
     @Value("${app.stripe.secret.key}")
     private String secretKey;
@@ -46,91 +44,115 @@ public class PaymentServiceImpl implements PaymentService {
         Stripe.apiKey = secretKey;
     }
 
-
-    private void payUsingCard(CardPayment cardPayment) {
-
-        double initialPrice = calculateInitialPrice(cardPayment.getShipment().getPrice());
-        log.info("Initial price {}", initialPrice);
-        cardPayment.setPaymentStatus(PaymentStatus.PROCESSING);
-        cardPayment.setAmount(BigDecimal.valueOf(initialPrice));
-        cardPayment.setTransactionId(null);
-        cardPayment.setPaidAt(null);
-
-        paymentRepository.save(cardPayment);
-
+    @Override
+    public Boolean checkPaymentStatus(String paymentIntentId) {
         try {
-            Charge charge = createCharge(cardPayment);
-            cardPayment.setPaymentStatus(PaymentStatus.SUCCEEDED);
-            cardPayment.setPaidAt(LocalDateTime.now());
-            cardPayment.setTransactionId(charge.getId());
+            PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+
+            String status = paymentIntent.getStatus();
+
+            String shipmentIdStr = paymentIntent.getMetadata().get("shipment_id");
+
+            if (shipmentIdStr == null || shipmentIdStr.isEmpty()) {
+                log.error("Shipment ID is missing in payment metadata");
+                throw new ResourceNotFoundException("Shipment ID is missing in payment metadata");
+            }
+
+            UUID shipmentId = UUID.fromString(shipmentIdStr);
+
+            return switch (status) {
+                case "succeeded" -> {
+                    markShipmentAsPaid(shipmentId, paymentIntentId);
+                    yield true;
+                }
+                case "requires_payment_method", "failed" -> {
+                    markShipmentAsUnpaid(shipmentId, paymentIntentId);
+                    yield false;
+                }
+                case "processing" -> false;
+                default -> {
+                    log.info("Unhandled payment status: {}", status);
+                    throw new PaymentProcessingException("Unhandled payment status: " + status);
+                }
+            };
 
         } catch (StripeException e) {
-            cardPayment.setPaymentStatus(PaymentStatus.FAILED);
-            log.error("Card payment failed for payment ID: {}", cardPayment.getPaymentId(), e);
-            throw new PaymentFailedException(e.getMessage());
+            log.error("Error checking payment status: {}", e.getMessage());
+            throw new PaymentProcessingException("Error checking payment status: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid shipment ID format: {}", e.getMessage());
+            throw new PaymentProcessingException("Invalid shipment ID format: " + e.getMessage());
         }
-        paymentRepository.save(cardPayment);
+    }
+
+    private void markShipmentAsPaid(UUID shipmentId , String paymentIntentId) {
+        Shipment shipment = loadShipmentById(shipmentId);
+        shipment.getPayment().setPaymentStatus(PaymentStatus.SUCCEEDED);
+        shipment.getPayment().setTransactionId(paymentIntentId);
+        shipment.getPayment().setPaidAt(LocalDateTime.now());
+        paymentRepository.save(shipment.getPayment());
+
+    }
+    private void markShipmentAsUnpaid(UUID shipmentId , String paymentIntentId) {
+        Shipment shipment = loadShipmentById(shipmentId);
+        shipment.getPayment().setPaymentStatus(PaymentStatus.FAILED);
+        shipment.getPayment().setTransactionId(paymentIntentId);
+        shipment.getPayment().setPaidAt(LocalDateTime.now());
+        paymentRepository.save(shipment.getPayment());
+    }
+
+    public ShipmentResponse createPaymentIntent(UUID shipmentId) {
+        try {
+            Shipment shipment = loadShipmentById(shipmentId);
+            long amount = calculatePaidAmount(shipment);
+
+            Map<String , Object> params = new HashMap<>();
+            params.put("amount", amount);
+            params.put("currency", "usd");
+            params.put("payment_method_types", List.of("card"));
+            params.put("description", "Payment for Shipment #" + shipment.getTitle());
+
+            Map<String, String> metadata = new HashMap<>();
+
+            metadata.put("shipment_id", shipment.getId().toString());
+            metadata.put("shipment_title", shipment.getTitle());
+            params.put("metadata", metadata);
+
+            PaymentIntent paymentIntent = PaymentIntent.create(params);
+
+            Payment payment = Payment.builder()
+                    .amount(amount / 100.0)
+                    .paymentStatus(PaymentStatus.PROCESSING)
+                    .shipment(shipment)
+                    .paymentIntentId(paymentIntent.getClientSecret())
+                    .paidAt(null)
+                    .transactionId(null)
+                    .build();
+            shipment.setPayment(payment);
+
+            return shipmentMapper.toResponseDTO(shipmentRepository.save(shipment));
+        } catch (StripeException e) {
+            throw new PaymentProcessingException("Failed to create payment intent" , e);
+        }
 
     }
 
-    private Charge createCharge(CardPayment cardPayment) throws StripeException {
+    private long calculatePaidAmount(Shipment shipment) {
         final int CENT_PER_DOLLAR = 100;
-        long amountInCents = Math.round(cardPayment.getAmount().doubleValue() * CENT_PER_DOLLAR);
-
-        Map<String, Object> chargeParams = new HashMap<>();
-        chargeParams.put("amount", amountInCents);
-        chargeParams.put("currency", "USD");
-        chargeParams.put("source", "tok_visa");
-        chargeParams.put("description", String.format("Shipment Payment %s", cardPayment.getShipment().getTitle()));
-        return Charge.create(chargeParams);
-    }
-
-    private double calculateInitialPrice(double total) {
         double PAID_PERCENT = 0.1;
-        return total * PAID_PERCENT;
+        double paidAmount = shipment.getPrice() * PAID_PERCENT;
+        return  Math.round(paidAmount * CENT_PER_DOLLAR);
     }
 
-    private void payUsingCash(CashPayment cashPayment , MultipartFile document) {
-        double initialPrice = calculateInitialPrice(cashPayment.getShipment().getPrice());
-
-        String receiptUrl = imageService.uploadImage(document);
-        cashPayment.setPaymentStatus(PaymentStatus.PROCESSING);
-        cashPayment.setAmount(new BigDecimal(initialPrice));
-        cashPayment.setReceiptUrl(receiptUrl);
-        cashPayment.setPaidAt(LocalDateTime.now());
-
-        paymentRepository.save(cashPayment);
-    }
-
-    @Override
-    public void createPayment(PaymentRequest request) {
-        Shipment shipment = loadShipmentById(request.shipmentId());
-
-        if (shipment.getPayment() != null && !shipment.getPayment().getPaymentStatus().equals(PaymentStatus.SUCCEEDED)) {
-            throw new DuplicatePaymentException("Payment already processed.");
-        }
-
-        Payment payment;
-        switch (request.method()) {
-            case "CASH" -> {
-                payment = new CashPayment();
-                payment.setShipment(shipment);
-                payUsingCash((CashPayment) payment, request.receipt());
-            }
-            case "CREDIT_CARD" -> {
-                payment = new CardPayment();
-                payment.setShipment(shipment);
-                payUsingCard((CardPayment) payment);
-            }
-            default -> throw new PaymentFailedException("Payment method not supported.");
-        }    }
 
     private Shipment loadShipmentById(UUID shipmentId) {
+
+//        if (shipment.getPayment() != null) {
+//            throw new PaymentProcessingException("This shipment already has a payment.");
+//        }
+
         return shipmentService.findById(shipmentId);
     }
-
-
-
 
 
 }

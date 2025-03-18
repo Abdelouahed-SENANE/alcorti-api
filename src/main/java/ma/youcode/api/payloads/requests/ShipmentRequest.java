@@ -1,5 +1,6 @@
 package ma.youcode.api.payloads.requests;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
@@ -8,8 +9,9 @@ import lombok.Builder;
 import ma.youcode.api.utilities.shared.Location;
 import org.starter.utilities.markers.validation.OnCreate;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Builder
 public record ShipmentRequest(
@@ -24,16 +26,17 @@ public record ShipmentRequest(
         Location departure,
 
         @NotNull(groups = {OnCreate.class}, message = "Start time is required")
-        LocalDateTime startTime,
+        Instant startTime,
 
         @NotNull(groups = {OnCreate.class}, message = "End time is required")
-        LocalDateTime endTime,
+        Instant endTime,
 
-        List<@Valid ShipmentItemRequest> shipmentItems
+        List<@Valid ShipmentItemRequest> items
+
 
 ) {
         @AssertTrue(groups = {OnCreate.class}, message = "Start time must be before end time")
-        private boolean isValid() {
+        public boolean isValid() {
                 return startTime.isBefore(endTime);
         }
 

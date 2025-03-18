@@ -1,15 +1,18 @@
 package ma.youcode.api.repositories;
 
+import ma.youcode.api.enums.ShipmentStatus;
 import ma.youcode.api.models.shipments.Shipment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.starter.utilities.repositories.GenericRepository;
 
 import java.util.UUID;
 
-public interface ShipmentRepository extends GenericRepository<Shipment, UUID> {
+public interface ShipmentRepository extends GenericRepository<Shipment, UUID> , JpaSpecificationExecutor<Shipment> {
 
     Page<Shipment> findAllByCustomerId(Pageable pageable , UUID customerId);
-    Page<Shipment> findAllByDriverId(Pageable pageable , UUID driverId);
+    Page<Shipment> findAllByShipmentStatusAndCustomerId(Pageable pageable , ShipmentStatus shipmentStatus , UUID customerId);
 
 }

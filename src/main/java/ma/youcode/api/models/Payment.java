@@ -1,11 +1,7 @@
-package ma.youcode.api.models.payments;
+package ma.youcode.api.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
+import lombok.*;
 import ma.youcode.api.enums.PaymentStatus;
 import ma.youcode.api.models.shipments.Shipment;
 import org.starter.utilities.entities.Auditable;
@@ -20,23 +16,25 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "payment_method")
-public abstract class Payment extends Auditable {
+@Builder
+public class Payment extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID paymentId;
 
     @Column(name = "amount")
-    private BigDecimal amount;
+    private Double amount;
 
     @Column(name = "payment_status")
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
+    @Column(name = "transaction_id")
+    private String transactionId;
 
+    @Column(name = "payment_intent_id")
+    private String paymentIntentId;
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;

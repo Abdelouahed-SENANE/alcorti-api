@@ -19,7 +19,7 @@ public class ShipmentItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID shipmentItemId;
+    private UUID id;
 
     @Column(name = "name")
     private String name;
