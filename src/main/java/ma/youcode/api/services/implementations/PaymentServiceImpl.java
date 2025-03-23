@@ -10,20 +10,27 @@ import ma.youcode.api.exceptions.PaymentProcessingException;
 import ma.youcode.api.exceptions.ResourceNotFoundException;
 import ma.youcode.api.models.Payment;
 import ma.youcode.api.models.shipments.Shipment;
+import ma.youcode.api.payloads.responses.PaymentResponse;
 import ma.youcode.api.payloads.responses.ShipmentResponse;
 import ma.youcode.api.repositories.PaymentRepository;
 import ma.youcode.api.repositories.ShipmentRepository;
 import ma.youcode.api.services.PaymentService;
 import ma.youcode.api.services.ShipmentService;
+import ma.youcode.api.utilities.mappers.PaymentMapper;
 import ma.youcode.api.utilities.mappers.ShipmentMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +42,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final ShipmentRepository shipmentRepository;
     private final ShipmentMapper shipmentMapper;
+    private  final PaymentMapper paymentMapper;
 
     @Value("${app.stripe.secret.key}")
     private String secretKey;
@@ -85,7 +93,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-    private void markShipmentAsPaid(UUID shipmentId , String paymentIntentId) {
+    private void markShipmentAsPaid(UUID shipmentId, String paymentIntentId) {
         Shipment shipment = loadShipmentById(shipmentId);
         shipment.getPayment().setPaymentStatus(PaymentStatus.SUCCEEDED);
         shipment.getPayment().setTransactionId(paymentIntentId);
@@ -93,7 +101,8 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepository.save(shipment.getPayment());
 
     }
-    private void markShipmentAsUnpaid(UUID shipmentId , String paymentIntentId) {
+
+    private void markShipmentAsUnpaid(UUID shipmentId, String paymentIntentId) {
         Shipment shipment = loadShipmentById(shipmentId);
         shipment.getPayment().setPaymentStatus(PaymentStatus.FAILED);
         shipment.getPayment().setTransactionId(paymentIntentId);
@@ -106,7 +115,7 @@ public class PaymentServiceImpl implements PaymentService {
             Shipment shipment = loadShipmentById(shipmentId);
             long amount = calculatePaidAmount(shipment);
 
-            Map<String , Object> params = new HashMap<>();
+            Map<String, Object> params = new HashMap<>();
             params.put("amount", amount);
             params.put("currency", "usd");
             params.put("payment_method_types", List.of("card"));
@@ -132,7 +141,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             return shipmentMapper.toResponseDTO(shipmentRepository.save(shipment));
         } catch (StripeException e) {
-            throw new PaymentProcessingException("Failed to create payment intent" , e);
+            throw new PaymentProcessingException("Failed to create payment intent", e);
         }
 
     }
@@ -141,19 +150,17 @@ public class PaymentServiceImpl implements PaymentService {
         final int CENT_PER_DOLLAR = 100;
         double PAID_PERCENT = 0.1;
         double paidAmount = shipment.getPrice() * PAID_PERCENT;
-        return  Math.round(paidAmount * CENT_PER_DOLLAR);
+        return Math.round(paidAmount * CENT_PER_DOLLAR);
     }
 
-
     private Shipment loadShipmentById(UUID shipmentId) {
-
-//        if (shipment.getPayment() != null) {
-//            throw new PaymentProcessingException("This shipment already has a payment.");
-//        }
-
         return shipmentService.findById(shipmentId);
     }
 
-
+    @Override
+    public Page<PaymentResponse> loadAllPayments(Pageable pageable) {
+        Page<Payment> payments = paymentRepository.findAll(pageable);
+        return payments.map(paymentMapper::toResponseDTO);
+    }
 }
 
